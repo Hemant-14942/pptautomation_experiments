@@ -1,0 +1,20 @@
+{
+  "hash": "593c06a24d35cb673975174969cb6bf3",
+  "tokens": {
+    "heading_fill": "015500",
+    "heading_text_color": "FFFFFF",
+    "heading_font": "Cambria",
+    "option_fill": {
+      "shared": "015500"
+    },
+    "option_text_color": "FFFFFF",
+    "option_font": "Cambria",
+    "table_header_fill": "275317",
+    "table_border_color": "000000",
+    "table_header_text_color": "FFFFFF",
+    "table_body_text_color": "000000",
+    "body_text_color": "FFFFFF",
+    "accent": "015500"
+  },
+  "source": "ai"
+}

@@ -1,0 +1,21 @@
+from app.config.settings import Paths
+from app.core.template_converter.builder import build_deck
+
+
+def run(input_path: str, template_path: str, output_path: str) -> None:
+    print(f"Input:    {input_path}")
+    print(f"Template: {template_path}")
+    print(f"Output:   {output_path}")
+    print()
+    build_deck(input_path, template_path, output_path)
+
+
+if __name__ == "__main__":
+    paths = Paths()
+    paths.ensure()
+
+    run(
+        input_path=str(paths.input_dir / "pres-6.pptx"),
+        template_path=str(paths.templates_dir / "purple.pptx"),
+        output_path=str(paths.output_dir / "test1.pptx"),
+    )

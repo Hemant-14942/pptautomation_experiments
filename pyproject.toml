@@ -1,0 +1,15 @@
+[project]
+name = "template-converter"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.39.0",
+    "azure-identity>=1.19.0",
+    "fastapi>=0.141.1",
+    "lxml>=6.1.2",
+    "python-dotenv>=1.0.1",
+    "python-multipart>=0.0.32",
+    "python-pptx>=1.0.2",
+    "uvicorn>=0.52.4",
+]
