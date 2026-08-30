@@ -113,6 +113,8 @@ def emit_body(spTree: etree._Element, item: dict[str, Any], dspec: DesignSpec) -
     if txBody is not None:
         strip_run_overrides(txBody)
         set_all_run_colors(xml_el, dspec.body_text_color)
+        if dspec.body_font:
+            set_all_run_fonts(xml_el, dspec.body_font)
     spTree.append(xml_el)
 
 

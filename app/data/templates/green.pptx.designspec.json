@@ -5,7 +5,14 @@
     "heading_text_color": "FFFFFF",
     "heading_font": "Cambria",
     "option_fill": {
-      "shared": "015500"
+      "A": "015500",
+      "C": "015500",
+      "E": "015500",
+      "G": "015500",
+      "B": "015500",
+      "D": "015500",
+      "F": "015500",
+      "H": "015500"
     },
     "option_text_color": "FFFFFF",
     "option_font": "Cambria",
@@ -14,7 +21,8 @@
     "table_header_text_color": "FFFFFF",
     "table_body_text_color": "000000",
     "body_text_color": "FFFFFF",
+    "body_font": "Cambria Font Color",
     "accent": "015500"
   },
-  "source": "ai"
+  "source": "heuristic"
 }

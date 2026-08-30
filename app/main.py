@@ -15,7 +15,10 @@ if __name__ == "__main__":
     paths.ensure()
 
     run(
-        input_path=str(paths.input_dir / "pres-6.pptx"),
+        input_path=str(paths.input_dir / "p4.pptx"),
         template_path=str(paths.templates_dir / "purple.pptx"),
-        output_path=str(paths.output_dir / "test1.pptx"),
+        output_path=str(paths.output_dir / "test3.pptx"),
     )
+
+# command to run the script
+# PYTHONPATH=. uv run python -m app.main

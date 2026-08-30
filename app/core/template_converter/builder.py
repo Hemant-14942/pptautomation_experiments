@@ -45,8 +45,11 @@ def build_deck(input_path: str, template_path: str, output_path: str) -> None:
 
     print(f"[builder] template slides: {len(designs)} | input slides: {len(inputs)}")
 
-    plan = ask_azure_for_plan(inputs, input_signatures, designs)
-    print(f"[builder] azure plan: {plan}")
+    last = len(designs) - 1
+    plan = {info["index"]: last for info in inputs}
+    print(f"[builder] TEST plan (all -> last template slide {last}): {plan}")
+    # plan = ask_azure_for_plan(inputs, input_signatures, designs)
+    # print(f"[builder] azure plan: {plan}")
 
     out_parts = build_output(
         template_parts, template_slide_xmls, template_layout_rids,

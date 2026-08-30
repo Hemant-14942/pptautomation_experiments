@@ -69,6 +69,7 @@ class DesignSpec:
     table_header_text_color: str
     table_body_text_color: str
     body_text_color: str
+    body_font: str | None
     accent: str
     source: str = "heuristic"
 
@@ -130,8 +131,17 @@ def _fill_hex_of(sp: etree._Element, theme_colors: dict[str, str]) -> str | None
     spPr = sp.find(_q("p:spPr"))
     if spPr is None:
         return None
-    return _resolve_color(spPr.find(_q("a:solidFill")), theme_colors)
-
+    solid = _resolve_color(spPr.find(_q("a:solidFill")), theme_colors)
+    if solid:
+        return solid
+    grad = spPr.find(_q("a:gradFill"))
+    if grad is None:
+        return None
+    for gs in grad.findall(".//" + _q("a:gs")):
+        hex_val = _resolve_color(gs, theme_colors)
+        if hex_val:
+            return hex_val
+    return None
 
 def _first_run_style(container: etree._Element, theme_colors: dict[str, str]) -> tuple[str | None, str | None]:
     """Best-effort (color, font) from the first run (or defRPr) in a
@@ -155,6 +165,31 @@ def _first_run_style(container: etree._Element, theme_colors: dict[str, str]) ->
     font = latin.get("typeface") if latin is not None else None
     return color, font
 
+def _parse_normal_text_from_last_slide(zf: zipfile.ZipFile) -> tuple[str | None, str | None]:
+    """Last-slide 'For Normal Text' block -> (color_hex, font_name)."""
+    names = sorted(
+        (n for n in zf.namelist() if re.match(r"ppt/slides/slide\d+\.xml$", n)),
+        key=lambda n: int(re.search(r"slide(\d+)", n).group(1)),
+    )
+    if not names:
+        return None, None
+    root = etree.fromstring(zf.read(names[-1]))
+    blob = " ".join(_text_of(el) for el in root.iter() if _local(el) in {"sp", "grpSp"})
+    if "for normal text" not in blob.lower():
+        return None, None
+    color = None
+    font = None
+    m = re.search(r"For Normal Text.{0,120}?Font Color\s*:\s*#([0-9A-Fa-f]{6})", blob, re.I | re.S)
+    if not m:
+        m = re.search(r"Font Color\s*:\s*#([0-9A-Fa-f]{6}).{0,80}?For Normal Text", blob, re.I | re.S)
+    if m:
+        color = m.group(1).upper()
+    m = re.search(r"For Normal Text.{0,120}?Font Type\s*:\s*([A-Za-z][A-Za-z0-9 ]+)", blob, re.I | re.S)
+    if not m:
+        m = re.search(r"Font Type\s*:\s*([A-Za-z][A-Za-z0-9 ]+).{0,80}?For Normal Text", blob, re.I | re.S)
+    if m:
+        font = m.group(1).strip().replace(" Bold", "").replace(" Italic", "")
+    return color, font
 
 def _set_hex(d: dict[str, Any], key: str, value: str | None) -> None:
     if value:
@@ -265,10 +300,14 @@ def _scan_template(zf: zipfile.ZipFile, theme_colors: dict[str, str], theme_font
                     if fill:
                         heading_fill = fill
                         heading_pill_el = copy.deepcopy(child)
-                        nxt = children[i + 1] if i + 1 < len(children) else None
-                        if nxt is not None and _local(nxt) == "sp":
-                            heading_text_color, heading_font = _first_run_style(nxt, theme_colors)
-                            heading_label_el = copy.deepcopy(nxt)
+                        pill_text = _text_of(child)
+                        if pill_text:
+                            heading_text_color, heading_font = _first_run_style(child, theme_colors)
+                        else:
+                            nxt = children[i + 1] if i + 1 < len(children) else None
+                            if nxt is not None and _local(nxt) == "sp" and _text_of(nxt):
+                                heading_text_color, heading_font = _first_run_style(nxt, theme_colors)
+                                heading_label_el = copy.deepcopy(nxt)
 
                 elif (
                     geom == "roundRect"
@@ -397,6 +436,10 @@ def _scan_template(zf: zipfile.ZipFile, theme_colors: dict[str, str], theme_font
                 title_icon_image_bytes, title_icon_image_ext = resolved
                 break
 
+    nt_color, nt_font = _parse_normal_text_from_last_slide(zf)
+    if nt_color:
+        body_text_color = nt_color
+    body_font = nt_font
     tokens = {
         "heading_fill": heading_fill or DEFAULT_HEADING_FILL,
         "heading_text_color": heading_text_color or DEFAULT_HEADING_TEXT_COLOR,
@@ -404,11 +447,12 @@ def _scan_template(zf: zipfile.ZipFile, theme_colors: dict[str, str], theme_font
         "option_fill": option_fill or {"shared": heading_fill or DEFAULT_HEADING_FILL},
         "option_text_color": option_text_color or DEFAULT_OPTION_TEXT_COLOR,
         "option_font": option_font or theme_font or DEFAULT_FONT,
-        "table_header_fill": table_header_fill or DEFAULT_TABLE_HEADER_FILL,
+        "table_header_fill": table_header_fill or heading_fill or DEFAULT_TABLE_HEADER_FILL,
         "table_border_color": table_border_color or DEFAULT_TABLE_BORDER_COLOR,
         "table_header_text_color": table_header_text_color or DEFAULT_TABLE_HEADER_TEXT_COLOR,
         "table_body_text_color": table_body_text_color or DEFAULT_TABLE_BODY_TEXT_COLOR,
         "body_text_color": body_text_color or heading_text_color or DEFAULT_HEADING_TEXT_COLOR,
+        "body_font": heading_font or "Cambria",
         "accent": heading_fill or theme_colors.get("accent1") or DEFAULT_ACCENT,
     }
 
@@ -544,10 +588,13 @@ def get_design_spec(
             tokens = None
 
     if tokens is None:
-        ai_json = _ask_azure_for_tokens(scan["tokens"], deployment)
-        tokens = _merge_ai(scan["tokens"], ai_json)
-        source = "ai" if ai_json else "heuristic"
-        print(f"[design-spec] design tokens resolved via {source}: {tokens}")
+        # ai_json = _ask_azure_for_tokens(scan["tokens"], deployment)
+        # tokens = _merge_ai(scan["tokens"], ai_json)
+        # source = "ai" if ai_json else "heuristic"
+        tokens = scan["tokens"]
+        source = "heuristic"
+        # print(f"[design-spec] design tokens resolved via {source}: {tokens}")
+        print(f"[design-spec] scan tokens (no AI): {tokens}")
         try:
             with open(cache_file, "w", encoding="utf-8") as fh:
                 json.dump({"hash": file_hash, "tokens": tokens, "source": source}, fh, indent=2)
@@ -566,6 +613,7 @@ def get_design_spec(
         table_header_text_color=tokens["table_header_text_color"],
         table_body_text_color=tokens["table_body_text_color"],
         body_text_color=tokens.get("body_text_color", tokens["heading_text_color"]),
+        body_font=tokens.get("body_font"),
         accent=tokens["accent"],
         source=source,
         heading_pill_el=scan["heading_pill_el"],
