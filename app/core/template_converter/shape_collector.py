@@ -23,6 +23,8 @@ from app.constants.shape_geometry import (
 )
 from app.constants.xml_namespaces import R
 from app.core.design_spec import DesignSpec
+from app.core.fit_layout.heading_text_adjusting import fit_title_heading
+from app.core.slide_text_analyzer import extract_text_from_slide
 from app.utils.xml_helpers import (
     local_name as _local,
     off_ext as _off_ext,
@@ -31,6 +33,153 @@ from app.utils.xml_helpers import (
     text_of as _text_of,
 )
 
+def _body_matches_heading_box(item: dict[str, Any], hpos) -> bool:
+    if item.get("kind") != "body" or item.get("xml") is None or not hpos:
+        return False
+    off, _ = _off_ext(item["xml"], "p:spPr")
+    if not off:
+        return False
+    return int(off[0]) == int(hpos[0]) and int(off[1]) == int(hpos[1])
+
+# for making shift the content below the pill
+PILL_CONTENT_GAP = 500_000  # space under the pill
+
+
+def _item_off_ext(item: dict[str, Any]):
+    if item.get("off"):
+        return item["off"], item.get("ext")
+    xml = item.get("xml")
+    if xml is None:
+        return None, None
+    off, ext = _off_ext(xml, "p:spPr")
+    if off:
+        return off, ext
+    off, ext = _off_ext(xml, "p:grpSpPr")
+    if off:
+        return off, ext
+    xfrm = xml.find(_q("p:xfrm"))
+    if xfrm is None:
+        return None, None
+    off_el = xfrm.find(_q("a:off"))
+    ext_el = xfrm.find(_q("a:ext"))
+    off = (int(off_el.get("x", 0)), int(off_el.get("y", 0))) if off_el is not None else None
+    ext = (int(ext_el.get("cx", 0)), int(ext_el.get("cy", 0))) if ext_el is not None else None
+    return off, ext
+
+
+def _nudge_y(item: dict[str, Any], dy: int) -> None:
+    if dy <= 0:
+        return
+    if item.get("off"):
+        x, y = item["off"]
+        item["off"] = (x, y + dy)
+    xml = item.get("xml")
+    if xml is None:
+        return
+    for pref in ("p:spPr", "p:grpSpPr"):
+        container = xml.find(_q(pref))
+        if container is None:
+            continue
+        xfrm = container.find(_q("a:xfrm"))
+        if xfrm is None:
+            continue
+        off_el = xfrm.find(_q("a:off"))
+        if off_el is not None:
+            off_el.set("y", str(int(off_el.get("y", 0)) + dy))
+        return
+    xfrm = xml.find(_q("p:xfrm"))
+    if xfrm is None:
+        return
+    off_el = xfrm.find(_q("a:off"))
+    if off_el is not None:
+        off_el.set("y", str(int(off_el.get("y", 0)) + dy))
+
+
+def _shift_content_below_pill(items: list[dict[str, Any]]) -> None:
+    pill = next((it for it in items if it.get("kind") == "title_heading"), None)
+    if pill is None or not pill.get("off") or not pill.get("ext"):
+        return
+    target_y = pill["off"][1] + pill["ext"][1] + PILL_CONTENT_GAP
+    for it in items:
+        if it.get("kind") in {"title_heading", "heading"}:
+            continue
+        off, _ = _item_off_ext(it)
+        if not off:
+            continue
+        if off[1] < target_y:
+            _nudge_y(it, target_y - off[1])
+
+
+def _apply_detected_heading(
+    items: list[dict[str, Any]],
+    heading: dict[str, Any] | None,
+    dspec: DesignSpec | None,
+    slide_width: int,
+) -> list[dict[str, Any]]:
+    if not heading or not heading.get("text") or dspec is None or dspec.title_banner_el is None:
+        return items
+
+    hpos = heading.get("position_top_left")
+    items = [it for it in items if not _body_matches_heading_box(it, hpos)]
+
+    baseline_pt = dspec.title_heading_font_size_pt
+
+    if not any(it.get("kind") == "title_heading" for it in items):
+        banner_off, banner_ext = _off_ext(dspec.title_banner_el, "p:spPr")
+        label_off, label_ext = banner_off, banner_ext
+        if dspec.title_label_el is not None:
+            lo, le = _off_ext(dspec.title_label_el, "p:spPr")
+            if lo and le:
+                label_off, label_ext = lo, le
+        label_off = label_off or banner_off
+        label_ext = label_ext or banner_ext
+        fit = fit_title_heading(
+            text=heading["text"],
+            banner_off=banner_off, banner_ext=banner_ext,
+            label_off=label_off, label_ext=label_ext,
+            baseline_font_size_pt=baseline_pt,
+            slide_width=slide_width,
+        )
+        items.insert(0, {
+            "kind": "title_heading",
+            "off": banner_off,
+            "ext": fit.banner_ext,
+            "label_text": heading["text"],
+            "label_off": label_off,
+            "label_ext": fit.label_ext,
+            "label_font_size_pt": fit.label_font_size_pt,
+            "wrap_mode": fit.wrap_mode,
+            "_orig_off": banner_off,
+            "_orig_ext": banner_ext,
+            "_orig_label_off": label_off,
+            "_orig_label_ext": label_ext,
+        })
+    else:
+        for it in items:
+            if it.get("kind") != "title_heading":
+                continue
+            it["label_text"] = heading["text"]
+            # Re-fit from the true pre-fit geometry (not the already-
+            # widened current ext) so re-fits stay idempotent regardless
+            # of how the heading text length changes.
+            orig_off = it.get("_orig_off", it["off"])
+            orig_ext = it.get("_orig_ext", it["ext"])
+            orig_label_off = it.get("_orig_label_off", it["label_off"])
+            orig_label_ext = it.get("_orig_label_ext", it["label_ext"])
+            fit = fit_title_heading(
+                text=heading["text"],
+                banner_off=orig_off, banner_ext=orig_ext,
+                label_off=orig_label_off, label_ext=orig_label_ext,
+                baseline_font_size_pt=baseline_pt,
+                slide_width=slide_width,
+            )
+            it["ext"] = fit.banner_ext
+            it["label_ext"] = fit.label_ext
+            it["label_font_size_pt"] = fit.label_font_size_pt
+            it["wrap_mode"] = fit.wrap_mode
+
+    _shift_content_below_pill(items)
+    return items
 
 def _find_paired_label(children: list, i: int, off, ext, claimed: set) -> etree._Element | None:
     if i + 1 < len(children):
@@ -104,11 +253,27 @@ def collect_inputs(input_path: str, dspec: DesignSpec | None = None) -> list[dic
                         if not (c_off[1] < off[1] + ext[1] and c_off[1] + c_ext[1] > off[1]):
                             continue
                         claimed.add(id(c))
+                    label_text_val = _text_of(label) if label is not None else ""
+                    _label_off = label_off or off
+                    _label_ext = label_ext or ext
+                    fit = fit_title_heading(
+                        text=label_text_val,
+                        banner_off=off, banner_ext=ext,
+                        label_off=_label_off, label_ext=_label_ext,
+                        baseline_font_size_pt=dspec.title_heading_font_size_pt if dspec else None,
+                        slide_width=slide_width,
+                    )
                     items.append({
                         "kind": "title_heading",
-                        "off": off, "ext": ext,
-                        "label_text": _text_of(label) if label is not None else "",
-                        "label_off": label_off or off, "label_ext": label_ext or ext,
+                        "off": off, "ext": fit.banner_ext,
+                        "label_text": label_text_val,
+                        "label_off": _label_off, "label_ext": fit.label_ext,
+                        "label_font_size_pt": fit.label_font_size_pt,
+                        "wrap_mode": fit.wrap_mode,
+                        "_orig_off": off,
+                        "_orig_ext": ext,
+                        "_orig_label_off": _label_off,
+                        "_orig_label_ext": _label_ext,
                     })
                     continue
 
@@ -185,5 +350,7 @@ def collect_inputs(input_path: str, dspec: DesignSpec | None = None) -> list[dic
                     "image_bytes": image_bytes, "image_ext": image_ext,
                 })
 
+        heading = extract_text_from_slide(slide, idx, prs).get("heading")
+        items = _apply_detected_heading(items, heading, dspec, slide_width)
         out.append({"index": idx, "items": items})
     return out

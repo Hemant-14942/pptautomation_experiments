@@ -34,6 +34,7 @@ from app.core.template_converter.shape_emitter import (
     emit_logo,
     emit_option,
     emit_picture,
+    emit_question_icon,
     emit_title_heading,
 )
 from app.core.template_converter.table_restyle import restyle_table
@@ -133,6 +134,12 @@ def build_output(
         title_icon_media_partname = f"ppt/media/design_spec_title_icon.{ext}"
         out_parts[title_icon_media_partname] = dspec.title_icon_image_bytes
 
+    question_icon_media_partname: str | None = None
+    if dspec.question_icon_el is not None and dspec.question_icon_image_bytes is not None:
+        ext = dspec.question_icon_image_ext or "png"
+        question_icon_media_partname = f"ppt/media/design_spec_question_icon.{ext}"
+        out_parts[question_icon_media_partname] = dspec.question_icon_image_bytes
+
     # Unique, deck-wide counter for media partnames of content pictures
     # carried over (as-is) from the input deck.
     pic_media_state = {"next": 0}
@@ -207,6 +214,11 @@ def build_output(
                 emit_picture(spTree, item, dspec, id_state, slide_rels_xml, pres_rels_ns, out_parts, pic_media_state)
             else:
                 emit_body(spTree, item, dspec)
+
+        if any(it.get("kind") == "heading" for it in info["items"]):
+            emit_question_icon(
+                spTree, dspec, id_state, slide_rels_xml, pres_rels_ns, question_icon_media_partname,
+            )
 
         emit_logo(spTree, dspec, id_state, slide_rels_xml, pres_rels_ns, logo_media_partname)
 

@@ -56,3 +56,35 @@ def in_range(ext: tuple[int, int] | None, cx_range: tuple[int, int], cy_range: t
         return False
     cx, cy = ext
     return cx_range[0] <= cx <= cx_range[1] and cy_range[0] <= cy <= cy_range[1]
+
+
+def representative_rpr(elem: etree._Element) -> etree._Element | None:
+    """The rPr that best represents a shape's/cell's text styling: the
+    first a:r/a:rPr, else a:lstStyle/a:defRPr, else the first
+    a:endParaRPr. Handles both <p:txBody> (shapes) and <a:txBody> (table
+    cells)."""
+    txBody = elem.find(q("p:txBody"))
+    if txBody is None:
+        txBody = elem.find(q("a:txBody"))
+    if txBody is None:
+        return None
+    r = txBody.find(".//" + q("a:r"))
+    rPr = r.find(q("a:rPr")) if r is not None else None
+    if rPr is None:
+        rPr = txBody.find(q("a:lstStyle") + "/" + q("a:defRPr"))
+    if rPr is None:
+        rPr = txBody.find(".//" + q("a:endParaRPr"))
+    return rPr
+
+
+def font_size_pt(elem: etree._Element) -> float | None:
+    """Baseline font size (pt) from a shape's representative run (see
+    representative_rpr), or None if nothing is set."""
+    rPr = representative_rpr(elem)
+    sz = rPr.get("sz") if rPr is not None else None
+    if not sz:
+        return None
+    try:
+        return int(sz) / 100.0
+    except ValueError:
+        return None

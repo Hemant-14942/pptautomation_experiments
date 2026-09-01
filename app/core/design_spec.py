@@ -33,7 +33,6 @@ from app.constants.shape_geometry import (
     LOGO_CY,
     OPTION_CX,
     OPTION_CY,
-    TITLE_BANNER_WIDTH_FRACTION,
 )
 from app.constants.xml_namespaces import NS, R
 from app.core.style_parser import _extract_theme
@@ -42,11 +41,13 @@ from app.prompts.design_tokens_prompts import (
     build_design_tokens_prompt,
 )
 from app.utils.xml_helpers import (
+    font_size_pt as _font_size_pt,
     in_range as _in_range,
     local_name as _local,
     off_ext as _off_ext,
     prst_geom as _prst_geom,
     q as _q,
+    representative_rpr as _representative_rpr,
     text_of as _text_of,
 )
 
@@ -84,6 +85,12 @@ class DesignSpec:
     logo_image_bytes: bytes | None = None
     logo_image_ext: str | None = None
 
+    question_icon_el: etree._Element | None = None
+    question_icon_off: tuple[int, int] | None = None
+    question_icon_ext: tuple[int, int] | None = None
+    question_icon_image_bytes: bytes | None = None
+    question_icon_image_ext: str | None = None
+
     # Topic-title banner heading: a wide rounded bar + its corner icon
     # picture, distinct from the compact MCQ heading_pill_el above.
     title_banner_el: etree._Element | None = None
@@ -93,6 +100,7 @@ class DesignSpec:
     title_icon_ext: tuple[int, int] | None = None
     title_icon_image_bytes: bytes | None = None
     title_icon_image_ext: str | None = None
+    title_heading_font_size_pt: float | None = None
 
     def option_color_for(self, letter: str) -> str:
         letter = (letter or "").upper()
@@ -147,17 +155,7 @@ def _first_run_style(container: etree._Element, theme_colors: dict[str, str]) ->
     """Best-effort (color, font) from the first run (or defRPr) in a
     shape's or table cell's text body. Handles both <p:txBody> (shapes)
     and <a:txBody> (table cells)."""
-    txBody = container.find(_q("p:txBody"))
-    if txBody is None:
-        txBody = container.find(_q("a:txBody"))
-    if txBody is None:
-        return None, None
-    r = txBody.find(".//" + _q("a:r"))
-    rPr = r.find(_q("a:rPr")) if r is not None else None
-    if rPr is None:
-        rPr = txBody.find(_q("a:lstStyle") + "/" + _q("a:defRPr"))
-    if rPr is None:
-        rPr = txBody.find(".//" + _q("a:endParaRPr"))
+    rPr = _representative_rpr(container)
     if rPr is None:
         return None, None
     color = _resolve_color(rPr.find(_q("a:solidFill")), theme_colors)
@@ -235,6 +233,106 @@ def _resolve_image_bytes(zf: zipfile.ZipFile, slide_name: str, rid: str) -> tupl
     return zf.read(media_path), ext
 
 
+_TYPE_HEADING_RE = re.compile(r"type\s+heading\s+here", re.I)
+_QUESTION_LABEL_RE = re.compile(r"^\s*question\s*$", re.I)
+
+
+def _rects_overlap_y(a_off, a_ext, b_off, b_ext) -> bool:
+    if not (a_off and a_ext and b_off and b_ext):
+        return False
+    return a_off[1] < b_off[1] + b_ext[1] and a_off[1] + a_ext[1] > b_off[1]
+
+
+def _question_pill_box(children):
+    for child in children:
+        if _local(child) != "sp" or _prst_geom(child) != "roundRect":
+            continue
+        if not _QUESTION_LABEL_RE.search(_text_of(child) or ""):
+            continue
+        return _off_ext(child, "p:spPr")
+    return None, None
+
+
+def _scan_title_banner_on_last_slide(zf, sn, slide_width, slide_height):
+    """Last template slide: 'Type Heading Here' plus its bar and left icon."""
+    root = etree.fromstring(zf.read(sn))
+    spTree = root.find(".//" + _q("p:spTree"))
+    if spTree is None:
+        return None
+    children = [c for c in list(spTree) if _local(c) in {"sp", "pic", "grpSp"}]
+
+    label_el = label_off = label_ext = None
+    for child in children:
+        if _local(child) != "sp":
+            continue
+        off, ext = _off_ext(child, "p:spPr")
+        if not off or off[1] >= slide_height * 0.35 or off[0] >= slide_width * 0.45:
+            continue
+        if _TYPE_HEADING_RE.search(_text_of(child) or ""):
+            label_el = child
+            label_off, label_ext = off, ext
+            break
+    if label_el is None:
+        return None
+
+    banner_el = label_el if _prst_geom(label_el) == "roundRect" else None
+    banner_off, banner_ext = label_off, label_ext
+    if banner_el is None:
+        best = None
+        for child in children:
+            if _local(child) != "sp" or child is label_el:
+                continue
+            if _prst_geom(child) not in {"roundRect", "round2SameRect"}:
+                continue
+            off, ext = _off_ext(child, "p:spPr")
+            if not off or off[1] >= slide_height * 0.45:
+                continue
+            if not _rects_overlap_y(off, ext, label_off, label_ext):
+                continue
+            best = (child, off, ext)
+            break
+        if best is None:
+            return None
+        banner_el, banner_off, banner_ext = best
+
+    icon_el = icon_off = icon_ext = None
+    icon_bytes = icon_file_ext = None
+    for c in children:
+        tag = _local(c)
+        if tag not in {"pic", "grpSp"}:
+            continue
+        pref = "p:grpSpPr" if tag == "grpSp" else "p:spPr"
+        c_off, c_ext = _off_ext(c, pref)
+        if not c_off or not c_ext:
+            continue
+        if c_off[0] + c_ext[0] / 2 >= slide_width * ICON_ZONE_X_FRACTION:
+            continue
+        if c_ext[0] >= slide_width * ICON_MAX_SIZE_FRACTION or c_ext[1] >= slide_height * ICON_MAX_SIZE_FRACTION:
+            continue
+        if not _rects_overlap_y(c_off, c_ext, banner_off, banner_ext):
+            continue
+        icon_el, icon_off, icon_ext = c, c_off, c_ext
+        blip = c.find(".//" + _q("a:blip"))
+        rid = blip.get("{%s}embed" % R) if blip is not None else None
+        if rid:
+            resolved = _resolve_image_bytes(zf, sn, rid)
+            if resolved:
+                icon_bytes, icon_file_ext = resolved
+        break
+
+    label_is_separate = banner_el is not label_el
+    return {
+        "title_banner_el": copy.deepcopy(banner_el),
+        "title_label_el": copy.deepcopy(label_el) if label_is_separate else None,
+        "title_icon_el": copy.deepcopy(icon_el) if icon_el is not None else None,
+        "title_icon_off": icon_off,
+        "title_icon_ext": icon_ext,
+        "title_icon_image_bytes": icon_bytes,
+        "title_icon_image_ext": icon_file_ext,
+        "title_heading_font_size_pt": _font_size_pt(label_el),
+    }
+
+
 def _scan_template(zf: zipfile.ZipFile, theme_colors: dict[str, str], theme_font: str | None) -> dict[str, Any]:
     heading_fill = None
     heading_text_color = None
@@ -262,6 +360,12 @@ def _scan_template(zf: zipfile.ZipFile, theme_colors: dict[str, str], theme_font
     logo_image_bytes = None
     logo_image_ext = None
 
+    question_icon_el = None
+    question_icon_off = None
+    question_icon_ext = None
+    question_icon_image_bytes = None
+    question_icon_image_ext = None
+
     title_banner_el = None
     title_label_el = None
     title_icon_el = None
@@ -269,6 +373,7 @@ def _scan_template(zf: zipfile.ZipFile, theme_colors: dict[str, str], theme_font
     title_icon_ext = None
     title_icon_image_bytes = None
     title_icon_image_ext = None
+    title_heading_font_size_pt = None
 
     slide_width, slide_height = _extract_slide_size(zf)
 
@@ -283,9 +388,6 @@ def _scan_template(zf: zipfile.ZipFile, theme_colors: dict[str, str], theme_font
         if spTree is None:
             continue
         children = list(spTree)
-
-        banner_off = banner_ext = None
-        banner_found_this_slide = False
 
         for i, child in enumerate(children):
             tag = _local(child)
@@ -308,19 +410,6 @@ def _scan_template(zf: zipfile.ZipFile, theme_colors: dict[str, str], theme_font
                             if nxt is not None and _local(nxt) == "sp" and _text_of(nxt):
                                 heading_text_color, heading_font = _first_run_style(nxt, theme_colors)
                                 heading_label_el = copy.deepcopy(nxt)
-
-                elif (
-                    geom == "roundRect"
-                    and title_banner_el is None
-                    and ext
-                    and ext[0] >= slide_width * TITLE_BANNER_WIDTH_FRACTION
-                ):
-                    title_banner_el = copy.deepcopy(child)
-                    banner_off, banner_ext = off, ext
-                    banner_found_this_slide = True
-                    nxt = children[i + 1] if i + 1 < len(children) else None
-                    if nxt is not None and _local(nxt) == "sp":
-                        title_label_el = copy.deepcopy(nxt)
 
                 elif geom == "ellipse" and _in_range(ext, OPTION_CX, OPTION_CY):
                     fill = _fill_hex_of(child, theme_colors)
@@ -394,47 +483,53 @@ def _scan_template(zf: zipfile.ZipFile, theme_colors: dict[str, str], theme_font
 
             elif tag == "pic":
                 off, ext = _off_ext(child, "p:spPr")
-                if logo_el is None and ext and _in_range(ext, LOGO_CX, LOGO_CY):
-                    blip = child.find(".//" + _q("a:blip"))
-                    rid = blip.get("{%s}embed" % R) if blip is not None else None
-                    if rid:
-                        resolved = _resolve_image_bytes(zf, sn, rid)
-                        if resolved:
-                            logo_el = copy.deepcopy(child)
-                            logo_off, logo_ext = off, ext
-                            logo_image_bytes, logo_image_ext = resolved
-
-        # The title banner's corner icon is a plain `pic` (no separate
-        # vector badge in this template's own vocabulary) sitting in the
-        # slide's left zone, vertically overlapping the banner -- as
-        # opposed to a logo/decoration parked over on the right. Only look
-        # for it right after finding the banner for the first time, using
-        # that slide's own children so ordering/z-index doesn't matter.
-        if banner_found_this_slide and title_icon_el is None:
-            for c in children:
-                if _local(c) != "pic":
+                if not (ext and _in_range(ext, LOGO_CX, LOGO_CY)):
                     continue
-                c_off, c_ext = _off_ext(c, "p:spPr")
-                if not c_off or not c_ext:
-                    continue
-                c_cx_center = c_off[0] + c_ext[0] / 2
-                if c_cx_center >= slide_width * ICON_ZONE_X_FRACTION:
-                    continue
-                if c_ext[0] >= slide_width * ICON_MAX_SIZE_FRACTION or c_ext[1] >= slide_height * ICON_MAX_SIZE_FRACTION:
-                    continue
-                if not (c_off[1] < banner_off[1] + banner_ext[1] and c_off[1] + c_ext[1] > banner_off[1]):
-                    continue
-                blip = c.find(".//" + _q("a:blip"))
+                blip = child.find(".//" + _q("a:blip"))
                 rid = blip.get("{%s}embed" % R) if blip is not None else None
                 if not rid:
                     continue
                 resolved = _resolve_image_bytes(zf, sn, rid)
                 if not resolved:
                     continue
-                title_icon_el = copy.deepcopy(c)
-                title_icon_off, title_icon_ext = c_off, c_ext
-                title_icon_image_bytes, title_icon_image_ext = resolved
-                break
+                q_off, q_ext = _question_pill_box(children)
+                if q_off and _rects_overlap_y(off, ext, q_off, q_ext):
+                    if question_icon_el is None:
+                        question_icon_el = copy.deepcopy(child)
+                        question_icon_off, question_icon_ext = off, ext
+                        question_icon_image_bytes, question_icon_image_ext = resolved
+                    continue
+                if off[0] + ext[0] / 2 < slide_width * 0.5:
+                    continue
+                if logo_el is None:
+                    logo_el = copy.deepcopy(child)
+                    logo_off, logo_ext = off, ext
+                    logo_image_bytes, logo_image_ext = resolved
+
+    if slide_names:
+        found = _scan_title_banner_on_last_slide(
+            zf, slide_names[-1], slide_width, slide_height,
+        )
+        if found:
+            title_banner_el = found["title_banner_el"]
+            title_label_el = found["title_label_el"]
+            title_icon_el = found["title_icon_el"]
+            title_icon_off = found["title_icon_off"]
+            title_icon_ext = found["title_icon_ext"]
+            title_icon_image_bytes = found["title_icon_image_bytes"]
+            title_icon_image_ext = found["title_icon_image_ext"]
+            title_heading_font_size_pt = found["title_heading_font_size_pt"]
+            fill = _fill_hex_of(title_banner_el, theme_colors)
+            if fill:
+                heading_fill = fill
+            if (
+                logo_off
+                and title_icon_off
+                and abs(logo_off[0] - title_icon_off[0]) < 200_000
+                and abs(logo_off[1] - title_icon_off[1]) < 200_000
+            ):
+                logo_el = logo_off = logo_ext = None
+                logo_image_bytes = logo_image_ext = None
 
     nt_color, nt_font = _parse_normal_text_from_last_slide(zf)
     if nt_color:
@@ -468,6 +563,11 @@ def _scan_template(zf: zipfile.ZipFile, theme_colors: dict[str, str], theme_font
         "logo_ext": logo_ext,
         "logo_image_bytes": logo_image_bytes,
         "logo_image_ext": logo_image_ext,
+        "question_icon_el": question_icon_el,
+        "question_icon_off": question_icon_off,
+        "question_icon_ext": question_icon_ext,
+        "question_icon_image_bytes": question_icon_image_bytes,
+        "question_icon_image_ext": question_icon_image_ext,
         "title_banner_el": title_banner_el,
         "title_label_el": title_label_el,
         "title_icon_el": title_icon_el,
@@ -475,6 +575,7 @@ def _scan_template(zf: zipfile.ZipFile, theme_colors: dict[str, str], theme_font
         "title_icon_ext": title_icon_ext,
         "title_icon_image_bytes": title_icon_image_bytes,
         "title_icon_image_ext": title_icon_image_ext,
+        "title_heading_font_size_pt": title_heading_font_size_pt,
     }
 
 
@@ -540,6 +641,48 @@ def _merge_ai(heuristic: dict[str, Any], ai: dict[str, Any] | None) -> dict[str,
     return merged
 
 
+def _spec_from_tokens_and_scan(tokens: dict[str, Any], source: str, scan: dict[str, Any]) -> DesignSpec:
+    return DesignSpec(
+        heading_fill=tokens["heading_fill"],
+        heading_text_color=tokens["heading_text_color"],
+        heading_font=tokens.get("heading_font"),
+        option_fill=tokens["option_fill"],
+        option_text_color=tokens["option_text_color"],
+        option_font=tokens.get("option_font"),
+        table_header_fill=tokens["table_header_fill"],
+        table_border_color=tokens["table_border_color"],
+        table_header_text_color=tokens["table_header_text_color"],
+        table_body_text_color=tokens["table_body_text_color"],
+        body_text_color=tokens.get("body_text_color", tokens["heading_text_color"]),
+        body_font=tokens.get("body_font"),
+        accent=tokens["accent"],
+        source=source,
+        heading_pill_el=scan["heading_pill_el"],
+        heading_label_el=scan["heading_label_el"],
+        option_pill_standalone_el=scan["option_pill_standalone_el"],
+        option_label_standalone_el=scan["option_label_standalone_el"],
+        option_pill_group_el=scan["option_pill_group_el"],
+        logo_el=scan["logo_el"],
+        logo_off=scan["logo_off"],
+        logo_ext=scan["logo_ext"],
+        logo_image_bytes=scan["logo_image_bytes"],
+        logo_image_ext=scan["logo_image_ext"],
+        question_icon_el=scan["question_icon_el"],
+        question_icon_off=scan["question_icon_off"],
+        question_icon_ext=scan["question_icon_ext"],
+        question_icon_image_bytes=scan["question_icon_image_bytes"],
+        question_icon_image_ext=scan["question_icon_image_ext"],
+        title_banner_el=scan["title_banner_el"],
+        title_label_el=scan["title_label_el"],
+        title_icon_el=scan["title_icon_el"],
+        title_icon_off=scan["title_icon_off"],
+        title_icon_ext=scan["title_icon_ext"],
+        title_icon_image_bytes=scan["title_icon_image_bytes"],
+        title_icon_image_ext=scan["title_icon_image_ext"],
+        title_heading_font_size_pt=scan["title_heading_font_size_pt"],
+    )
+
+
 # --------------------------------------------------------------------------
 # public entry point
 # --------------------------------------------------------------------------
@@ -552,11 +695,11 @@ def get_design_spec(
     """Return the (cached) DesignSpec for a template.
 
     * In-memory cache keyed by (abs path, content hash): repeat calls in
-      the same process never re-scan or re-call AI.
+      the same process never re-scan.
     * On-disk cache `<template_path>.designspec.json` keyed by content
-      hash: repeat *process* runs never re-call AI for an unchanged
-      template file. The cloned shape geometry is re-derived from the
-      template on every call (cheap, deterministic, no AI involved).
+      hash, holding the design *tokens* only. The cloned shape geometry
+      and icon/logo image bytes are re-derived from the template on every
+      call (cheap, deterministic, no AI involved).
     """
     abs_path = os.path.abspath(template_path)
     with open(abs_path, "rb") as fh:
@@ -588,12 +731,8 @@ def get_design_spec(
             tokens = None
 
     if tokens is None:
-        # ai_json = _ask_azure_for_tokens(scan["tokens"], deployment)
-        # tokens = _merge_ai(scan["tokens"], ai_json)
-        # source = "ai" if ai_json else "heuristic"
         tokens = scan["tokens"]
         source = "heuristic"
-        # print(f"[design-spec] design tokens resolved via {source}: {tokens}")
         print(f"[design-spec] scan tokens (no AI): {tokens}")
         try:
             with open(cache_file, "w", encoding="utf-8") as fh:
@@ -601,38 +740,6 @@ def get_design_spec(
         except OSError:
             pass
 
-    spec = DesignSpec(
-        heading_fill=tokens["heading_fill"],
-        heading_text_color=tokens["heading_text_color"],
-        heading_font=tokens.get("heading_font"),
-        option_fill=tokens["option_fill"],
-        option_text_color=tokens["option_text_color"],
-        option_font=tokens.get("option_font"),
-        table_header_fill=tokens["table_header_fill"],
-        table_border_color=tokens["table_border_color"],
-        table_header_text_color=tokens["table_header_text_color"],
-        table_body_text_color=tokens["table_body_text_color"],
-        body_text_color=tokens.get("body_text_color", tokens["heading_text_color"]),
-        body_font=tokens.get("body_font"),
-        accent=tokens["accent"],
-        source=source,
-        heading_pill_el=scan["heading_pill_el"],
-        heading_label_el=scan["heading_label_el"],
-        option_pill_standalone_el=scan["option_pill_standalone_el"],
-        option_label_standalone_el=scan["option_label_standalone_el"],
-        option_pill_group_el=scan["option_pill_group_el"],
-        logo_el=scan["logo_el"],
-        logo_off=scan["logo_off"],
-        logo_ext=scan["logo_ext"],
-        logo_image_bytes=scan["logo_image_bytes"],
-        logo_image_ext=scan["logo_image_ext"],
-        title_banner_el=scan["title_banner_el"],
-        title_label_el=scan["title_label_el"],
-        title_icon_el=scan["title_icon_el"],
-        title_icon_off=scan["title_icon_off"],
-        title_icon_ext=scan["title_icon_ext"],
-        title_icon_image_bytes=scan["title_icon_image_bytes"],
-        title_icon_image_ext=scan["title_icon_image_ext"],
-    )
+    spec = _spec_from_tokens_and_scan(tokens, source, scan)
     _memory_cache[cache_key] = spec
     return spec

@@ -21,7 +21,7 @@
     "table_header_text_color": "FFFFFF",
     "table_body_text_color": "000000",
     "body_text_color": "FFFFFF",
-    "body_font": "Cambria Font Color",
+    "body_font": "Cambria",
     "accent": "015500"
   },
   "source": "heuristic"

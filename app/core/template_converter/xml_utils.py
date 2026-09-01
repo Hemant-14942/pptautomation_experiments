@@ -102,6 +102,48 @@ def set_all_run_fonts(el: etree._Element, font_name: str) -> None:
             existing.set("typeface", font_name)
 
 
+def set_all_run_sizes(el: etree._Element, size_pt: float) -> None:
+    """Set every run's (and endParaRPr's) `sz` attribute (hundredths of a
+    point) in a shape's txBody -- mirrors set_all_run_colors/
+    set_all_run_fonts. Only meant to be called when a caller has actually
+    computed a different size to apply; leave the template's own baked-in
+    size untouched otherwise."""
+    txBody = el.find(q("p:txBody"))
+    if txBody is None:
+        txBody = el.find(q("a:txBody"))
+    if txBody is None:
+        return
+    sz_str = str(int(round(size_pt * 100)))
+    for rPr in list(txBody.iter(q("a:rPr"))) + list(txBody.iter(q("a:endParaRPr"))):
+        rPr.set("sz", sz_str)
+
+
+def enable_text_wrapping(el: etree._Element) -> None:
+    """Enable text wrapping (wrap="square") and set top-left alignment for
+    a text shape's bodyPr, so long headings can wrap vertically instead of
+    overflowing or shrinking. Also sets vertical anchor to top."""
+    txBody = el.find(q("p:txBody"))
+    if txBody is None:
+        txBody = el.find(q("a:txBody"))
+    if txBody is None:
+        return
+    bodyPr = txBody.find(q("a:bodyPr"))
+    if bodyPr is None:
+        return
+    bodyPr.set("wrap", "square")
+    bodyPr.set("anchorCtr", "0")
+    bodyPr.set("anchor", "t")
+    # Set left-to-right text direction
+    bodyPr.set("rtlCol", "0")
+    # Set paragraph alignment to left
+    for p in txBody.findall(q("a:p")):
+        pPr = p.find(q("a:pPr"))
+        if pPr is None:
+            pPr = etree.Element(q("a:pPr"))
+            p.insert(0, pPr)
+        pPr.set("algn", "l")
+
+
 def clone_and_place(el: etree._Element, off: tuple[int, int] | None, ext: tuple[int, int] | None) -> etree._Element:
     clone = copy.deepcopy(el)
     spPr = clone.find(q("p:spPr"))

@@ -178,7 +178,7 @@ def extract_text_from_slide(slide, slide_number,prs):
     if sptree is None:
         return {
             "slide_number": slide_number,
-            "text_elements": []
+            "heading": None,
         }
     
     # Get all shapes
@@ -204,12 +204,6 @@ def extract_text_from_slide(slide, slide_number,prs):
                     # Add shape size info
                     text_info["shape_size"] = ext
                     text_elements.append(text_info)
-    if sptree is None:
-        return {
-            "slide_number": slide_number,
-            "heading": None,
-        }
-
     # ... same loop into text_elements ...
     heading = pick_heading(text_elements, int(prs.slide_height))
 
