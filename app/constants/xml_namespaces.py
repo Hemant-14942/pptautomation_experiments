@@ -1,10 +1,3 @@
-"""OOXML/DrawingML namespace URIs shared by every module that reads or
-writes raw slide XML (app/core/design_spec.py, app/core/style_parser.py,
-app/core/template_converter/*).
-
-Single source of truth: previously each of those files declared its own
-copy of this same dict.
-"""
 
 NS = {
     "a": "http://schemas.openxmlformats.org/drawingml/2006/main",

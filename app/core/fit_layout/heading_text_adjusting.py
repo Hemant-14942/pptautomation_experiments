@@ -1,21 +1,3 @@
-"""Pure geometry/text-fit math for the topic-title banner + label pair
-(app/core/design_spec.py's title_banner_el / title_label_el / title_icon_el).
-
-No XML here -- app/core/template_converter/xml_utils.py has the mutation
-helpers (set_all_run_sizes, clone_and_place) this feeds into, and
-app/core/template_converter/shape_collector.py / shape_emitter.py wire it
-into the real pipeline. Kept XML-free so the fit math is unit-testable
-with plain ints/strings.
-
-Algorithm: the icon anchors the banner's left edge, so a long heading
-first tries to widen the banner/label rightward -- up to the master
-layout's own right-margin boundary (TITLE_HEADING_RIGHT_MARGIN_FRACTION of
-the slide width, reserved for the logo/branding). Only if the text still
-doesn't fit at the max width does the font size shrink, down to a floor.
-Sizing decisions use a character-count heuristic (not real glyph
-measurement) since the template's actual font file isn't guaranteed to be
-available server-side.
-"""
 from __future__ import annotations
 
 from dataclasses import dataclass

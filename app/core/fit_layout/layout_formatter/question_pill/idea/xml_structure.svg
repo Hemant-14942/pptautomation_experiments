@@ -1,0 +1,84 @@
+<svg viewBox="0 0 1000 900" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="500" y="40" font-size="28" font-weight="bold" text-anchor="middle" fill="#333">PowerPoint XML Structure: Question Pill</text>
+
+  <!-- XML tree structure -->
+  <g font-family="monospace" font-size="13">
+    <!-- Level 0: p:sp -->
+    <rect x="20" y="80" width="350" height="40" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="4"/>
+    <text x="35" y="110" font-weight="bold" fill="#E65100">&lt;p:sp&gt;</text>
+    <text x="380" y="110" fill="#666">(shape element)</text>
+
+    <!-- Line connecting to children -->
+    <line x1="90" y1="120" x2="90" y2="160" stroke="#999" stroke-width="1"/>
+
+    <!-- Level 1: p:spPr -->
+    <rect x="50" y="160" width="350" height="40" fill="#E8F5E9" stroke="#4CAF50" stroke-width="2" rx="4"/>
+    <text x="65" y="190" font-weight="bold" fill="#2E7D32">&lt;p:spPr&gt;</text>
+    <text x="410" y="190" fill="#666">(shape properties)</text>
+
+    <!-- Line to a:xfrm -->
+    <line x1="150" y1="200" x2="150" y2="240" stroke="#999" stroke-width="1"/>
+
+    <!-- Level 2: a:xfrm (transform) -->
+    <rect x="100" y="240" width="300" height="40" fill="#E0F2F1" stroke="#009688" stroke-width="2" rx="4"/>
+    <text x="115" y="270" font-weight="bold" fill="#00695C">&lt;a:xfrm&gt;</text>
+    <text x="410" y="270" fill="#666">(position &amp; size)</text>
+
+    <!-- Lines to offset and extent -->
+    <line x1="130" y1="280" x2="130" y2="320" stroke="#999" stroke-width="1"/>
+    <line x1="240" y1="280" x2="240" y2="320" stroke="#999" stroke-width="1"/>
+
+    <!-- Level 3a: a:off (offset - position) -->
+    <rect x="80" y="320" width="280" height="40" fill="#FCE4EC" stroke="#E91E63" stroke-width="2" rx="4"/>
+    <text x="95" y="350" font-weight="bold" fill="#AD1457">&lt;a:off x="-1864528" y="681774"&gt;</text>
+    <text x="370" y="350" fill="#666">(X,Y position in EMU)</text>
+
+    <!-- Level 3b: a:ext (extent - size) -->
+    <rect x="200" y="320" width="320" height="40" fill="#F3E5F5" stroke="#9C27B0" stroke-width="2" rx="4"/>
+    <text x="215" y="350" font-weight="bold" fill="#6A1B9A">&lt;a:ext cx="7081988" cy="1569660"&gt;</text>
+    <text x="530" y="350" fill="#666">(width, height in EMU)</text>
+
+    <!-- Line to p:txBody -->
+    <line x1="180" y1="200" x2="180" y2="420" stroke="#999" stroke-width="1"/>
+
+    <!-- Level 2: p:txBody (text container) -->
+    <rect x="100" y="420" width="300" height="40" fill="#F1F8E9" stroke="#689F38" stroke-width="2" rx="4"/>
+    <text x="115" y="450" font-weight="bold" fill="#33691E">&lt;p:txBody&gt;</text>
+    <text x="410" y="450" fill="#666">(text container)</text>
+
+    <!-- Line to a:p -->
+    <line x1="180" y1="460" x2="180" y2="500" stroke="#999" stroke-width="1"/>
+
+    <!-- Level 3: a:p (paragraph) -->
+    <rect x="100" y="500" width="300" height="40" fill="#FFEBEE" stroke="#F44336" stroke-width="2" rx="4"/>
+    <text x="115" y="530" font-weight="bold" fill="#B71C1C">&lt;a:p&gt;</text>
+    <text x="410" y="530" fill="#666">(paragraph/line)</text>
+
+    <!-- Line to a:r -->
+    <line x1="180" y1="540" x2="180" y2="580" stroke="#999" stroke-width="1"/>
+
+    <!-- Level 4: a:r (run - text with same formatting) -->
+    <rect x="100" y="580" width="300" height="40" fill="#EDE7F6" stroke="#673AB7" stroke-width="2" rx="4"/>
+    <text x="115" y="610" font-weight="bold" fill="#4527A0">&lt;a:r&gt;</text>
+    <text x="410" y="610" fill="#666">(text run)</text>
+
+    <!-- Line to a:t -->
+    <line x1="180" y1="620" x2="180" y2="660" stroke="#999" stroke-width="1"/>
+
+    <!-- Level 5: a:t (THE TEXT!) -->
+    <rect x="60" y="660" width="380" height="50" fill="#FFCDD2" stroke="#FF6B6B" stroke-width="3" rx="4"/>
+    <text x="75" y="685" font-weight="bold" fill="#C62828">&lt;a:t&gt;Question&lt;/a:t&gt;</text>
+    <text x="450" y="685" fill="#E91E63" font-weight="bold">← THIS IS WHAT WE UPDATE!</text>
+    <text x="75" y="705" fill="#666">(the actual text string)</text>
+  </g>
+
+  <!-- Legend box -->
+  <g>
+    <rect x="20" y="760" width="960" height="110" fill="#FFFDE7" stroke="#FBC02D" stroke-width="2" rx="5"/>
+    <text x="40" y="790" font-size="14" font-weight="bold" fill="#F57F17">How format_question_pill() works:</text>
+    <text x="40" y="820" font-size="12" fill="#333">1. clone_and_place() updates &lt;a:off&gt; (position) and &lt;a:ext&gt; (size) to fixed layout values</text>
+    <text x="40" y="845" font-size="12" fill="#333">2. Searches for &lt;a:t&gt; element and updates its text content with label_text parameter</text>
+    <text x="40" y="870" font-size="12" fill="#333">3. Returns the cloned pill with new position, size, and text ready to add to output slide</text>
+  </g>
+</svg>

@@ -1,0 +1,97 @@
+<svg viewBox="0 0 1200 1400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="600" y="40" font-size="32" font-weight="bold" text-anchor="middle" fill="#333">
+    Question Slide: Shape Structure & Hierarchy
+  </text>
+
+  <!-- Left column: XML Order (Shape Index) -->
+  <g>
+    <text x="50" y="100" font-size="18" font-weight="bold" fill="#333">XML Order (Shape Index):</text>
+
+    <!-- Shape 0 -->
+    <rect x="30" y="130" width="280" height="120" fill="#FFEBEE" stroke="#F44336" stroke-width="2" rx="5"/>
+    <text x="50" y="160" font-size="16" font-weight="bold" fill="#B71C1C">Shape 0</text>
+    <text x="50" y="185" font-size="12" fill="#333">Type: TEXT_BOX</text>
+    <text x="50" y="210" font-size="12" fill="#333">Content: "Let . Find the</text>
+    <text x="50" y="230" font-size="12" fill="#333">cofactors of A."</text>
+
+    <!-- Shape 1 -->
+    <rect x="30" y="270" width="280" height="120" fill="#E8F5E9" stroke="#4CAF50" stroke-width="2" rx="5"/>
+    <text x="50" y="300" font-size="16" font-weight="bold" fill="#2E7D32">Shape 1</text>
+    <text x="50" y="325" font-size="12" fill="#333">Type: AUTO_SHAPE</text>
+    <text x="50" y="350" font-size="12" fill="#333">Geometry: roundRect</text>
+    <text x="50" y="370" font-size="12" fill="#333">Content: Empty (visual)</text>
+
+    <!-- Shape 2 -->
+    <rect x="30" y="410" width="280" height="120" fill="#E3F2FD" stroke="#2196F3" stroke-width="2" rx="5"/>
+    <text x="50" y="440" font-size="16" font-weight="bold" fill="#1565C0">Shape 2</text>
+    <text x="50" y="465" font-size="12" fill="#333">Type: TEXT_BOX</text>
+    <text x="50" y="490" font-size="12" fill="#333">Content: "Question"</text>
+    <text x="50" y="510" font-size="12" fill="#333">Position: Inside Shape 1</text>
+  </g>
+
+  <!-- Right column: Visual Layout (Top to Bottom) -->
+  <g>
+    <text x="420" y="100" font-size="18" font-weight="bold" fill="#333">Visual Layout (Slide View):</text>
+
+    <!-- Slide canvas -->
+    <rect x="340" y="130" width="800" height="600" fill="#F5F5F5" stroke="#333" stroke-width="2" rx="5"/>
+
+    <!-- Shape 1 (Pill) - TOP -->
+    <rect x="360" y="160" width="760" height="140" fill="#4CAF50" opacity="0.6" stroke="#2E7D32" stroke-width="2" rx="15"/>
+    <text x="380" y="195" font-size="14" font-weight="bold" fill="#fff">Shape 1: QUESTION PILL (roundRect)</text>
+    <text x="380" y="215" font-size="12" fill="#fff">Position: (-2.039", 0.746") — extends LEFT</text>
+    <text x="380" y="235" font-size="12" fill="#fff">Size: 7.745" × 1.717"</text>
+
+    <!-- Shape 2 (Label) - INSIDE Shape 1 -->
+    <rect x="420" y="175" width="600" height="90" fill="#fff" stroke="#2196F3" stroke-width="2" rx="5"/>
+    <text x="440" y="205" font-size="14" font-weight="bold" fill="#1565C0">Shape 2: LABEL TEXT</text>
+    <text x="440" y="225" font-size="12" fill="#333">Text: "Question"</text>
+    <text x="440" y="245" font-size="12" fill="#333">Position: (1.137", 0.904")</text>
+
+    <!-- Shape 0 (Body) - BOTTOM -->
+    <rect x="360" y="330" width="760" height="320" fill="#FFEBEE" stroke="#F44336" stroke-width="2" rx="5"/>
+    <text x="380" y="365" font-size="14" font-weight="bold" fill="#B71C1C">Shape 0: QUESTION BODY TEXT</text>
+    <text x="380" y="390" font-size="12" fill="#333">Position: (1.208", 2.621") — below pill</text>
+    <text x="380" y="410" font-size="12" fill="#333">Text: "Let . Find the following cofactors of A."</text>
+    <text x="380" y="430" font-size="12" fill="#333">Size: 38.0" × 3.8" (full-width-ish)</text>
+    <text x="380" y="500" font-size="11" fill="#666">(Room for multi-line questions)</text>
+    <text x="380" y="520" font-size="11" fill="#666">(Text wrapping enabled)</text>
+  </g>
+
+  <!-- Bottom section: Formatter Coverage -->
+  <g>
+    <text x="50" y="800" font-size="18" font-weight="bold" fill="#333">Current Formatter Coverage:</text>
+
+    <!-- Current Implementation -->
+    <rect x="30" y="830" width="520" height="180" fill="#E8F5E9" stroke="#4CAF50" stroke-width="2" rx="5"/>
+    <text x="50" y="860" font-size="16" font-weight="bold" fill="#2E7D32">✓ question_pill Formatter</text>
+    <text x="50" y="890" font-size="13" fill="#333">Formats & positions:</text>
+    <text x="70" y="915" font-size="12" fill="#333">• Shape 1 (Pill) at fixed position</text>
+    <text x="70" y="940" font-size="12" fill="#333">• Shape 2 (Label "Question")</text>
+    <text x="70" y="965" font-size="12" fill="#333">Result: Pill + label visible at top ✓</text>
+
+    <!-- Future Implementation -->
+    <rect x="580" y="830" width="520" height="180" fill="#FFEBEE" stroke="#F44336" stroke-width="2" rx="5"/>
+    <text x="600" y="860" font-size="16" font-weight="bold" fill="#B71C1C">⏱ Future: question_body Formatter</text>
+    <text x="600" y="890" font-size="13" fill="#333">Will format & position:</text>
+    <text x="620" y="915" font-size="12" fill="#333">• Shape 0 (Body text)</text>
+    <text x="620" y="940" font-size="12" fill="#333">• Enable text wrapping</text>
+    <text x="620" y="965" font-size="12" fill="#333">Result: Question body below pill ✓</text>
+  </g>
+
+  <!-- Key insight box -->
+  <g>
+    <rect x="30" y="1060" width="1100" height="120" fill="#FFF9C4" stroke="#FBC02D" stroke-width="2" rx="5"/>
+    <text x="50" y="1090" font-size="14" font-weight="bold" fill="#F57F17">Key Insight:</text>
+    <text x="50" y="1115" font-size="12" fill="#333">
+      • Shape 0 is "first" in XML order but appears VISUALLY at the bottom
+    </text>
+    <text x="50" y="1135" font-size="12" fill="#333">
+      • Shapes 1 + 2 are "later" in XML order but appear VISUALLY at the top
+    </text>
+    <text x="50" y="1155" font-size="12" fill="#333">
+      • Each shape is independent and can be formatted separately by different formatters
+    </text>
+  </g>
+</svg>

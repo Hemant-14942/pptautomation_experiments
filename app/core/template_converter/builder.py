@@ -1,12 +1,3 @@
-"""Orchestrates the whole template-conversion pipeline for one (input,
-template) pair: parse both decks, resolve the template's DesignSpec,
-classify the input's shapes, decide the input->template slide mapping, and
-assemble the output .pptx.
-
-This module intentionally stays thin -- the actual work lives in its
-sibling modules (shape_collector, shape_emitter, slide_matcher,
-zip_assembly) and in app/core/design_spec.py / app/core/style_parser.py.
-"""
 from __future__ import annotations
 
 import os

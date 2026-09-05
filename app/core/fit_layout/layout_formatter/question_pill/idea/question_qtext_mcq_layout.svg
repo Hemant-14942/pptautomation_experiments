@@ -1,0 +1,186 @@
+<svg viewBox="0 0 2500 2800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="1250" y="40" font-size="32" font-weight="bold" text-anchor="middle" fill="#333">
+    Question + Text + MCQ Layout (from p.pptx Slide 24)
+  </text>
+
+  <!-- Slide canvas -->
+  <rect x="100" y="80" width="2300" height="2600" fill="#f9f9f9" stroke="#333" stroke-width="2" rx="5"/>
+
+  <!-- Y-axis scale on left -->
+  <text x="30" y="100" font-size="10" fill="#999">0"</text>
+  <text x="30" y="400" font-size="10" fill="#999">5"</text>
+  <text x="30" y="700" font-size="10" fill="#999">10"</text>
+  <text x="30" y="1000" font-size="10" fill="#999">15"</text>
+  <text x="30" y="1300" font-size="10" fill="#999">20"</text>
+
+  <!-- =========================================================================== -->
+  <!-- SECTION 1: QUESTION PILL + LABEL -->
+  <!-- =========================================================================== -->
+  <g>
+    <!-- Question Pill (extends left) -->
+    <rect x="0" y="130" width="380" height="130" rx="15" fill="#4CAF50" opacity="0.7" stroke="#2E7D32" stroke-width="2"/>
+
+    <!-- Question Label inside pill -->
+    <rect x="230" y="160" width="250" height="80" fill="#fff" stroke="#2196F3" stroke-width="1" rx="3"/>
+    <text x="355" y="205" font-size="14" font-weight="bold" text-anchor="middle" fill="#1565C0">Question</text>
+  </g>
+
+  <!-- Labels for pill -->
+  <text x="100" y="300" font-size="12" font-weight="bold" fill="#E91E63">Pill Position:</text>
+  <text x="100" y="320" font-size="11" fill="#333">x=-2.039", y=0.746"</text>
+  <text x="100" y="340" font-size="11" fill="#333">Size: 7.745" × 1.717"</text>
+
+  <!-- =========================================================================== -->
+  <!-- GAP 1 (~1.2") -->
+  <!-- =========================================================================== -->
+  <line x1="100" y1="290" x2="100" y2="410" stroke="#FFC107" stroke-width="2" stroke-dasharray="3,3"/>
+  <text x="110" y="350" font-size="11" fill="#FFC107" font-weight="bold">~1.2" gap</text>
+
+  <!-- =========================================================================== -->
+  <!-- SECTION 2: QUESTION TEXT BOX -->
+  <!-- =========================================================================== -->
+  <g>
+    <rect x="120" y="420" width="2200" height="250" fill="#E3F2FD" stroke="#2196F3" stroke-width="2" rx="3"/>
+    <text x="150" y="460" font-size="12" font-weight="bold" fill="#1565C0">Question Text Box</text>
+    <text x="150" y="485" font-size="11" fill="#333">25. Match List I with List II</text>
+    <text x="150" y="510" font-size="11" fill="#333">[06 April, 2024 (Shift-I)]</text>
+    <text x="150" y="535" font-size="11" fill="#333">Choose the correct answer...</text>
+    <text x="150" y="560" font-size="10" fill="#666">(Multi-line text with wrapping)</text>
+    <text x="150" y="580" font-size="10" fill="#666">(Can be 4-5 lines)</text>
+  </g>
+
+  <!-- Labels for question text -->
+  <text x="1400" y="460" font-size="12" font-weight="bold" fill="#E91E63">Position: (1.208", 2.621")</text>
+  <text x="1400" y="480" font-size="11" fill="#333">Size: 38.0" × 2.8"</text>
+
+  <!-- =========================================================================== -->
+  <!-- GAP 2 (~7" gap before options) -->
+  <!-- =========================================================================== -->
+  <line x1="120" y1="710" x2="120" y2="1000" stroke="#FFC107" stroke-width="2" stroke-dasharray="3,3"/>
+  <text x="130" y="850" font-size="11" fill="#FFC107" font-weight="bold">~7" gap</text>
+
+  <!-- =========================================================================== -->
+  <!-- SECTION 3: MCQ OPTION A -->
+  <!-- =========================================================================== -->
+  <g>
+    <!-- Option A Pill (ellipse) -->
+    <circle cx="220" cy="1040" r="70" fill="#FF9800" opacity="0.7" stroke="#E65100" stroke-width="2"/>
+    <text x="220" y="1055" font-size="16" font-weight="bold" text-anchor="middle" fill="#fff">A</text>
+
+    <!-- Option A Answer Text -->
+    <rect x="350" y="1000" width="1950" height="150" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="3"/>
+    <text x="370" y="1045" font-size="12" fill="#333">A-I, B-III, C-II, D-IV</text>
+    <text x="370" y="1075" font-size="11" fill="#666">(First MCQ option answer text)</text>
+  </g>
+
+  <!-- Labels for Option A -->
+  <text x="1400" y="1045" font-size="11" font-weight="bold" fill="#E91E63">Pill: (1.137", 12.438")</text>
+  <text x="1400" y="1065" font-size="10" fill="#333">Answer: (3.399", 15.006")</text>
+
+  <!-- =========================================================================== -->
+  <!-- GAP 3 (~0.3" between options) -->
+  <!-- =========================================================================== -->
+  <line x1="120" y1="1190" x2="120" y2="1240" stroke="#FFC107" stroke-width="2" stroke-dasharray="3,3"/>
+  <text x="130" y="1210" font-size="10" fill="#FFC107">~0.3"</text>
+
+  <!-- =========================================================================== -->
+  <!-- SECTION 4: MCQ OPTION B -->
+  <!-- =========================================================================== -->
+  <g>
+    <!-- Option B Pill -->
+    <circle cx="220" cy="1305" r="70" fill="#9C27B0" opacity="0.7" stroke="#6A1B9A" stroke-width="2"/>
+    <text x="220" y="1320" font-size="16" font-weight="bold" text-anchor="middle" fill="#fff">B</text>
+
+    <!-- Option B Answer Text -->
+    <rect x="350" y="1265" width="1950" height="150" fill="#F3E5F5" stroke="#9C27B0" stroke-width="2" rx="3"/>
+    <text x="370" y="1310" font-size="12" fill="#333">A-IV, B-III, C-II, D-I</text>
+    <text x="370" y="1340" font-size="11" fill="#666">(Second MCQ option answer text)</text>
+  </g>
+
+  <!-- Labels for Option B -->
+  <text x="1400" y="1310" font-size="11" font-weight="bold" fill="#E91E63">Pill: (1.137", 14.753")</text>
+
+  <!-- =========================================================================== -->
+  <!-- GAP 4 (~0.3" between options) -->
+  <!-- =========================================================================== -->
+  <line x1="120" y1="1455" x2="120" y2="1505" stroke="#FFC107" stroke-width="2" stroke-dasharray="3,3"/>
+  <text x="130" y="1475" font-size="10" fill="#FFC107">~0.3"</text>
+
+  <!-- =========================================================================== -->
+  <!-- SECTION 5: MCQ OPTION C -->
+  <!-- =========================================================================== -->
+  <g>
+    <!-- Option C Pill -->
+    <circle cx="220" cy="1570" r="70" fill="#F44336" opacity="0.7" stroke="#C62828" stroke-width="2"/>
+    <text x="220" y="1585" font-size="16" font-weight="bold" text-anchor="middle" fill="#fff">C</text>
+
+    <!-- Option C Answer Text -->
+    <rect x="350" y="1530" width="1950" height="150" fill="#FFEBEE" stroke="#F44336" stroke-width="2" rx="3"/>
+    <text x="370" y="1575" font-size="12" fill="#333">A-III, B-I, C-II, D-IV</text>
+    <text x="370" y="1605" font-size="11" fill="#666">(Third MCQ option answer text)</text>
+  </g>
+
+  <!-- Labels for Option C -->
+  <text x="1400" y="1575" font-size="11" font-weight="bold" fill="#E91E63">Pill: (1.137", 17.069")</text>
+
+  <!-- =========================================================================== -->
+  <!-- GAP 5 (~0.3" between options) -->
+  <!-- =========================================================================== -->
+  <line x1="120" y1="1720" x2="120" y2="1770" stroke="#FFC107" stroke-width="2" stroke-dasharray="3,3"/>
+  <text x="130" y="1740" font-size="10" fill="#FFC107">~0.3"</text>
+
+  <!-- =========================================================================== -->
+  <!-- SECTION 6: MCQ OPTION D -->
+  <!-- =========================================================================== -->
+  <g>
+    <!-- Option D Pill -->
+    <circle cx="220" cy="1835" r="70" fill="#2196F3" opacity="0.7" stroke="#1565C0" stroke-width="2"/>
+    <text x="220" y="1850" font-size="16" font-weight="bold" text-anchor="middle" fill="#fff">D</text>
+
+    <!-- Option D Answer Text -->
+    <rect x="350" y="1795" width="1950" height="150" fill="#E3F2FD" stroke="#2196F3" stroke-width="2" rx="3"/>
+    <text x="370" y="1840" font-size="12" fill="#333">A-IV, B-II, C-III, D-I</text>
+    <text x="370" y="1870" font-size="11" fill="#666">(Fourth MCQ option answer text)</text>
+  </g>
+
+  <!-- Labels for Option D -->
+  <text x="1400" y="1840" font-size="11" font-weight="bold" fill="#E91E63">Pill: (1.137", 19.384")</text>
+
+  <!-- =========================================================================== -->
+  <!-- LEGEND BOX -->
+  <!-- =========================================================================== -->
+  <g>
+    <rect x="120" y="2000" width="2100" height="300" fill="#FFFDE7" stroke="#FBC02D" stroke-width="2" rx="5"/>
+
+    <text x="150" y="2035" font-size="14" font-weight="bold" fill="#F57F17">Structure Summary:</text>
+
+    <text x="150" y="2070" font-size="12" fill="#333">
+      ✓ Question Pill (roundRect) + Label at y=0.746"
+    </text>
+
+    <text x="150" y="2100" font-size="12" fill="#333">
+      ✓ Question Text Box at y=2.621" (4-5 lines, full width, wrapped)
+    </text>
+
+    <text x="150" y="2130" font-size="12" fill="#333">
+      ✓ Option A (ellipse pill + label "A") at y=12.438" + answer text
+    </text>
+
+    <text x="150" y="2160" font-size="12" fill="#333">
+      ✓ Option B (ellipse pill + label "B") at y=14.753" + answer text (gap: 0.3")
+    </text>
+
+    <text x="150" y="2190" font-size="12" fill="#333">
+      ✓ Option C (ellipse pill + label "C") at y=17.069" + answer text (gap: 0.3")
+    </text>
+
+    <text x="150" y="2220" font-size="12" fill="#333">
+      ✓ Option D (ellipse pill + label "D") at y=19.384" + answer text (gap: 0.3")
+    </text>
+
+    <text x="150" y="2255" font-size="11" font-weight="bold" fill="#F57F17">
+      Answer text: Full width (35.810") starting at x=3.399", height=1.747"
+    </text>
+  </g>
+</svg>

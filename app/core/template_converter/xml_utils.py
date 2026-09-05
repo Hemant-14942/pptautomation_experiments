@@ -1,11 +1,3 @@
-"""Low-level shape-XML *mutation* helpers used while emitting the output
-deck: cloning a template shape into a new position, overwriting its fill/
-text/run-colors/fonts, renumbering ids, stripping run-level overrides so the
-template's theme cascades, etc.
-
-Read-only accessors (q, local_name, prst_geom, off_ext, text_of) live in
-app/utils/xml_helpers.py -- this module is specifically the "write" side.
-"""
 from __future__ import annotations
 
 import copy
@@ -145,22 +137,41 @@ def enable_text_wrapping(el: etree._Element) -> None:
 
 
 def clone_and_place(el: etree._Element, off: tuple[int, int] | None, ext: tuple[int, int] | None) -> etree._Element:
+    # Make a complete copy of the shape element so we don't change the original
     clone = copy.deepcopy(el)
+
+    # Find the shape's properties section (contains position, size, rotation, etc)
     spPr = clone.find(q("p:spPr"))
+
+    # Only update position/size if we have valid inputs and the properties section exists
     if spPr is not None and off and ext:
+        # Find the transformation section that holds position and size info
         xfrm = spPr.find(q("a:xfrm"))
+        # If transformation section doesn't exist, create it
         if xfrm is None:
             xfrm = etree.SubElement(spPr, q("a:xfrm"))
+
+        # Find the offset (position) element that contains X and Y coordinates
         off_el = xfrm.find(q("a:off"))
+        # If offset element doesn't exist, create it
         if off_el is None:
             off_el = etree.SubElement(xfrm, q("a:off"))
+        # Set the new X coordinate (left edge position in EMU units)
         off_el.set("x", str(off[0]))
+        # Set the new Y coordinate (top edge position in EMU units)
         off_el.set("y", str(off[1]))
+
+        # Find the extent (size) element that contains width and height
         ext_el = xfrm.find(q("a:ext"))
+        # If extent element doesn't exist, create it
         if ext_el is None:
             ext_el = etree.SubElement(xfrm, q("a:ext"))
+        # Set the new width (cx = horizontal extent in EMU units)
         ext_el.set("cx", str(ext[0]))
+        # Set the new height (cy = vertical extent in EMU units)
         ext_el.set("cy", str(ext[1]))
+
+    # Return the cloned shape with updated position and size
     return clone
 
 

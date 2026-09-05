@@ -1,8 +1,3 @@
-"""Generic, stateless read-only accessors over raw DrawingML/PresentationML
-XML elements (lxml). Shared by app/core/design_spec.py and
-app/core/template_converter/* -- both walk the same `<p:sp>`/`<p:pic>`/
-`<p:grpSp>` shape trees and previously each carried their own copy of these.
-"""
 from __future__ import annotations
 
 from lxml import etree

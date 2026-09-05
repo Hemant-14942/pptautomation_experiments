@@ -1,8 +1,3 @@
-"""Emits output-deck shapes for each classified input item (see
-shape_collector.py), cloning the matching element out of the template's
-DesignSpec and re-homing it (position, fill, text, colors, fonts, image
-relationships) onto the current output slide.
-"""
 from __future__ import annotations
 
 import copy
