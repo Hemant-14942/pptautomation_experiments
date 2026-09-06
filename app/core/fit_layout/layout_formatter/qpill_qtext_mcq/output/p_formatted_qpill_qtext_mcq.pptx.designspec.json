@@ -1,0 +1,24 @@
+{
+  "hash": "e48b4a74d17984372c2cb26af0f0c85f",
+  "tokens": {
+    "heading_fill": "07213C",
+    "heading_text_color": "FFFFFF",
+    "heading_font": "Cambria",
+    "option_fill": {
+      "A": "07213C",
+      "B": "07213C",
+      "C": "07213C",
+      "D": "07213C"
+    },
+    "option_text_color": "FFFFFF",
+    "option_font": "Cambria",
+    "table_header_fill": "07213C",
+    "table_border_color": "000000",
+    "table_header_text_color": "000000",
+    "table_body_text_color": "000000",
+    "body_text_color": "FFFFFF",
+    "body_font": "Cambria",
+    "accent": "07213C"
+  },
+  "source": "heuristic"
+}

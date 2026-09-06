@@ -1,33 +1,3 @@
-"""Derive a slide type label from an input slide.
-
-Heading detection uses the real pick_heading() logic (exactly 80pt, bold
-preferred) via extract_text_from_slide() -- not a text-shape-count guess.
-A slide's heading is always 80pt/bold by convention here; anything else is
-treated as a malformed input and correctly fails detection rather than
-being guessed at.
-
-Combines that with the structural signature from
-`app.core.style_parser.parse_input_slide_signature` (table/option counts)
-and a position-filtered picture count, since the signature's raw
-picture_count also counts small logo/icon shapes sitting near the top of
-the slide.
-
-Types recognized:
-TITLE-BASED SLIDES:
-- SLIDE_TYPE_TITLE_TABLE_ONLY: heading + a table, no real body text, no
-  real images, no options
-- SLIDE_TYPE_TITLE_BODY_ONLY: heading + body, no images
-- SLIDE_TYPE_TITLE_BODY_SINGLE_IMAGE: heading + body + exactly one real image
-- SLIDE_TYPE_TITLE_BODY_MULTIPLE_IMAGES: heading + body + 2+ real images
-
-QUESTION-BASED SLIDES:
-- SLIDE_TYPE_QUESTION_QTEXT_MCQ: question pill + question text + exactly 4
-  MCQ options (A, B, C, D), NO heading, NO table, NO images, NO body text
-  except question text and MCQ answer text
-
-Any other combination returns None.
-"""
-
 from typing import Any
 
 from pptx.presentation import Presentation as PresentationType
