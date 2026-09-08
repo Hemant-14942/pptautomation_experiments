@@ -20,7 +20,7 @@ def set_tc_fill(tcPr: etree._Element, hex_val: str) -> None:
 
 
 def restyle_table(graphic_frame: etree._Element, dspec: DesignSpec) -> None:
-    """Restyle only the header row using MCQ heading tokens (heading_fill / heading_text_color)."""
+    """Restyle only the header row using MCQ question pill tokens."""
     tbl = graphic_frame.find(".//" + q("a:tbl"))
     if tbl is None:
         return
@@ -34,5 +34,5 @@ def restyle_table(graphic_frame: etree._Element, dspec: DesignSpec) -> None:
         tcPr = tc.find(q("a:tcPr"))
         if tcPr is None:
             tcPr = etree.SubElement(tc, q("a:tcPr"))
-        set_tc_fill(tcPr, dspec.heading_fill)
-        set_all_run_colors(tc, dspec.heading_text_color)
+        set_tc_fill(tcPr, dspec.question_pill_fill)
+        set_all_run_colors(tc, dspec.question_pill_text_color)

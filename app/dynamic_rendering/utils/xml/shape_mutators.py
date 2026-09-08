@@ -331,7 +331,7 @@ def renumber_ids(el: etree._Element, id_state: dict[str, int]) -> None:
 
 def rects_close(off1, ext1, off2, ext2, tol: int = RECTS_CLOSE_TOLERANCE) -> bool:
     """
-    Check if two shapes start at almost the same place (duplicate logo check).
+    Check if two shapes start at almost the same place.
 
     We only compare top-left corners (off), not full size.
     """

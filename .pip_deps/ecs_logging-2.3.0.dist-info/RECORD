@@ -1,0 +1,17 @@
+ecs_logging-2.3.0.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+ecs_logging-2.3.0.dist-info/METADATA,sha256=21pdR1w0MFWzPGU3D05COyhWzHHHSadWHjT6KivK624,2825
+ecs_logging-2.3.0.dist-info/RECORD,,
+ecs_logging-2.3.0.dist-info/REQUESTED,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0
+ecs_logging-2.3.0.dist-info/WHEEL,sha256=G2gURzTEtmeR8nrdXUJfNiB3VYVxigPQ-bEQujpNiNs,82
+ecs_logging-2.3.0.dist-info/licenses/LICENSE.txt,sha256=xx0jnfkXJvxRnG63LTGOxlggYnIysveWIZ6H3PNdCrQ,11357
+ecs_logging/__init__.py,sha256=i_GfE4cfAIeaN60IOuqFyi5DV-2njQlezGZkJyoqYKk,1057
+ecs_logging/__pycache__/__init__.cpython-310.pyc,,
+ecs_logging/__pycache__/_meta.cpython-310.pyc,,
+ecs_logging/__pycache__/_stdlib.cpython-310.pyc,,
+ecs_logging/__pycache__/_structlog.cpython-310.pyc,,
+ecs_logging/__pycache__/_utils.cpython-310.pyc,,
+ecs_logging/_meta.py,sha256=_LNbTFxcqd82JIuDbUqMSHOlYpdxN4rGjD2vD6Xt9Yg,795
+ecs_logging/_stdlib.py,sha256=NgWQm-i3qhiuOWABiQh3mwJSBK18XkMN_B8baAX0n4Y,11803
+ecs_logging/_structlog.py,sha256=oGkZ5G_zPFePOMzno4K7OTtr1UxlzfK51OueuMzLQRg,2449
+ecs_logging/_utils.py,sha256=au8FovcPQ_c58oAis2OckDKtIVwOVG_x0gG_psSn3EA,5524
+ecs_logging/py.typed,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0

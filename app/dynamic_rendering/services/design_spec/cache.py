@@ -27,6 +27,8 @@ def load_disk_tokens(cache_file: str, file_hash: str) -> tuple[dict[str, Any] | 
         with open(cache_file, "r", encoding="utf-8") as fh:
             disk = json.load(fh)
         if disk.get("hash") == file_hash and isinstance(disk.get("tokens"), dict):
+            if "question_pill_fill" not in disk["tokens"]:
+                return None, "heuristic"
             return disk["tokens"], disk.get("source", "cached")
     except (OSError, json.JSONDecodeError):
         pass

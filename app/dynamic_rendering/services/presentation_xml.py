@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import copy
-
 from lxml import etree
 
 from app.dynamic_rendering.constants.presentation_defaults import (
@@ -42,21 +40,12 @@ def extract_notes_size(xml_blob: bytes) -> tuple[int, int] | None:
         return None
 
 
-def extract_default_text_style(xml_blob: bytes) -> etree._Element | None:
-    if not xml_blob:
-        return None
-    root = etree.fromstring(xml_blob)
-    el = root.find(q("p:defaultTextStyle"))
-    return copy.deepcopy(el) if el is not None else None
-
-
 def build_presentation_xml(
     num_slides: int,
     start_id: int = FIRST_SLIDE_ID,
     slide_width: int = DEFAULT_SLIDE_WIDTH,
     slide_height: int = DEFAULT_SLIDE_HEIGHT,
     notes_size: tuple[int, int] | None = None,
-    default_text_style: etree._Element | None = None,
     base_pres_xml: bytes | None = None,
 ) -> etree._Element:
     """Reuse template presentation.xml wrapper; rewrite p:sldIdLst only."""

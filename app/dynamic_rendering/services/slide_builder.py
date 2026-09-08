@@ -10,14 +10,11 @@ from lxml import etree
 
 from app.dynamic_rendering.constants.presentation_defaults import FIRST_SHAPE_ID_PER_SLIDE
 from app.dynamic_rendering.domain.models.design_spec import DesignSpec
-from app.dynamic_rendering.domain.models.slide_design import SlideDesign
 from app.dynamic_rendering.services.shape_emitters import (
     emit_body,
     emit_heading,
-    emit_logo,
     emit_option,
     emit_picture,
-    emit_question_icon,
     emit_title_heading,
 )
 from app.dynamic_rendering.services.table_restyle import restyle_table
@@ -25,9 +22,18 @@ from app.dynamic_rendering.utils.xml.helpers import q
 
 PRES_RELS_NS = "{http://schemas.openxmlformats.org/package/2006/relationships}"
 
+# scrub_template_slide:
+# - Deep-copies the template slide so the ORIGINAL template stays untouched
+#   (needed because this runs once per output slide).
+# - Removes all old shapes (text/images/tables) from the shape tree (spTree),
+#   giving a clean/empty canvas to fill with new content.
+# - Keeps nvGrpSpPr — it's a required PowerPoint tag, not a visible shape;
+#   deleting it makes the file invalid/corrupt.
+# - p:bg (background/theme) is NOT touched — it lives outside spTree,
+#   so template's look & feel carries over automatically.
 
 def scrub_template_slide(slide_xml: etree._Element) -> etree._Element:
-    """Clone template slide XML but remove all shapes except nvGrpSpPr."""
+    """Clone template slide XML but remove all shapes except nvGrpSpPr (keeps p:bg)."""
     fresh = copy.deepcopy(slide_xml)
     spTree = fresh.find(q("p:cSld") + "/" + q("p:spTree"))
     if spTree is None:
@@ -38,23 +44,6 @@ def scrub_template_slide(slide_xml: etree._Element) -> etree._Element:
             continue
         spTree.remove(child)
     return fresh
-
-
-def clone_template_background(target_sxml: etree._Element, design: SlideDesign) -> None:
-    """Copy background XML from the matched template slide design."""
-    cSld = target_sxml.find(q("p:cSld"))
-    if cSld is None:
-        return
-    existing = cSld.find(q("p:bg"))
-    if design.background_xml is None:
-        if existing is not None:
-            cSld.remove(existing)
-        return
-    new_bg = etree.fromstring(design.background_xml)
-    if existing is not None:
-        cSld.replace(existing, new_bg)
-    else:
-        cSld.insert(0, new_bg)
 
 
 def sorted_slide_partnames(template_parts: dict[str, bytes]) -> list[str]:
@@ -80,28 +69,34 @@ def build_slide(
     *,
     slide_index: int,
     info: dict[str, Any],
-    design: SlideDesign,
     tmpl_slide_xml: etree._Element,
     tmpl_layout_partname: str,
     tmpl_rels_blob: bytes | None,
     dspec: DesignSpec,
     out_parts: dict[str, bytes],
     pic_media_state: dict[str, int],
-    logo_media_partname: str | None,
     title_icon_media_partname: str | None,
-    question_icon_media_partname: str | None,
     used_layouts: dict[str, str],
     new_pres_rels: etree._Element,
 ) -> tuple[bytes, bytes]:
     """Build slide XML + slide rels for one input slide."""
+    # this is the fresh slide free from al the old shapes,except the background,nvgrpsppr becoz have the metadata of the background
     fresh = scrub_template_slide(tmpl_slide_xml)
-    clone_template_background(fresh, design)
     spTree = fresh.find(q("p:cSld") + "/" + q("p:spTree"))
-
+    # this is the relationships element for the slide, it contains the relationships for the slide
     slide_rels_xml = etree.Element(PRES_RELS_NS + "Relationships")
+    # this is the id state for the shapes, it is used to generate the id for the new shapes,and preserve the id collision
     id_state = {"next": FIRST_SHAPE_ID_PER_SLIDE}
 
     for item in info["items"]:
+        # this is the item, it is the item that is being rendered, it is a dictionary with the following keys:
+        # - kind: the type of the item
+        # - xml: the xml of the item
+        # - dspec: the design specification for the item
+        # - id_state: the id state for the item
+        # - slide_rels_xml: the relationships element for the item
+        # - PRES_RELS_NS: the namespace for the relationships element
+        # - out_parts: the parts for the item
         kind = item["kind"]
         if kind == "heading":
             emit_heading(spTree, item, dspec, id_state)
@@ -121,13 +116,6 @@ def build_slide(
             )
         else:
             emit_body(spTree, item, dspec)
-
-    if any(it.get("kind") == "heading" for it in info["items"]):
-        emit_question_icon(
-            spTree, dspec, id_state, slide_rels_xml, PRES_RELS_NS, question_icon_media_partname,
-        )
-
-    emit_logo(spTree, dspec, id_state, slide_rels_xml, PRES_RELS_NS, logo_media_partname)
 
     layout_rid = used_layouts.get(tmpl_layout_partname)
     if layout_rid is None:

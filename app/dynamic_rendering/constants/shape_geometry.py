@@ -16,11 +16,6 @@ HEADING_CY = (1_000_000, 2_300_000)   # height ~1.1" to ~2.5"
 OPTION_CX = (1_200_000, 2_100_000)
 OPTION_CY = (1_200_000, 2_100_000)
 
-# --- Logo picture (small image, usually bottom-right) ----------------------
-# Typical XML: p:pic with embedded image r:embed="rIdN"
-LOGO_CX = (300_000, 3_200_000)
-LOGO_CY = (300_000, 3_200_000)
-
 # --- Title banner (wide bar at top — fraction of slide, not fixed EMU) -----
 # Used when slide is huge (e.g. Google Slides export).
 TITLE_BANNER_WIDTH_FRACTION = 0.35   # shape width must be >= 35% of slide width
@@ -29,9 +24,6 @@ ICON_MAX_SIZE_FRACTION = 0.30        # icon not bigger than 30% of slide width/h
 
 # --- "Are these two shapes in the same place?" tolerances ------------------
 RECTS_CLOSE_TOLERANCE = 200_000
-LOGO_DUPLICATE_POSITION_TOLERANCE = 10_000_000
-LOGO_DUPLICATE_SIZE_TOLERANCE = 1_500_000
-LOGO_RECLONE_TOLERANCE = 300_000
 
 # Max gap between pill and its label text shape when pairing them.
 LABEL_PAIRING_TOLERANCE = 500_000

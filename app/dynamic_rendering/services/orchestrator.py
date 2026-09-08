@@ -2,58 +2,54 @@
 
 from __future__ import annotations
 
+import logging
 import os
+
+import app.dynamic_rendering.log  # noqa: F401 — configure ECS logging
 
 from app.dynamic_rendering.infrastructure.pptx.archive_reader import read_template_archive
 from app.dynamic_rendering.infrastructure.pptx.archive_writer import write_archive
 from app.dynamic_rendering.services.design_spec import get_design_spec
 from app.dynamic_rendering.services.input_collector import collect_inputs
 from app.dynamic_rendering.services.output_assembler import build_output
-from app.dynamic_rendering.services.slide_matcher import get_slide_plan
-from app.dynamic_rendering.services.style_parser.template_parser import parse_template
+
+logger = logging.getLogger(__name__)
 
 
-def build_deck(
-    input_path: str,
-    template_path: str,
-    output_path: str,
-    *,
-    slide_plan_mode: str = "test",
-) -> None:
-    print(f"[builder] input    = {input_path}")
-    print(f"[builder] template = {template_path}")
-    print(f"[builder] output   = {output_path}")
+def build_deck(input_path: str, template_path: str, output_path: str) -> None:
+    logger.info("build started", extra={"input": input_path, "template": template_path, "output": output_path})
 
     archive = read_template_archive(template_path)
-    _, designs, _ = parse_template(template_path)
     dspec = get_design_spec(template_path)
-    print(
-        f"[builder] design spec (source={dspec.source}): heading_fill=#{dspec.heading_fill} "
-        f"option_fill={dspec.option_fill} table_header_fill=#{dspec.table_header_fill} "
-        f"logo={'yes' if dspec.logo_el is not None else 'no'} "
-        f"title_banner={'yes' if dspec.title_banner_el is not None else 'no'} "
-        f"title_icon={'yes' if dspec.title_icon_el is not None else 'no'}"
+    logger.info(
+        "design spec loaded",
+        extra={
+            "source": dspec.source,
+            "question_pill_fill": dspec.question_pill_fill,
+            "option_fill": dspec.option_fill,
+            "table_header_fill": dspec.table_header_fill,
+            "title_banner": dspec.title_banner_el is not None,
+            "title_icon": dspec.title_icon_el is not None,
+        },
     )
 
     inputs = collect_inputs(input_path, dspec)
-    print(f"[builder] template slides: {len(designs)} | input slides: {len(inputs)}")
-
-    plan = get_slide_plan(inputs, designs, mode=slide_plan_mode)
-    if slide_plan_mode == "test" and designs:
-        last = len(designs) - 1
-        print(f"[builder] TEST plan (all -> last template slide {last}): {plan}")
-    else:
-        print(f"[builder] slide plan ({slide_plan_mode}): {plan}")
+    logger.info(
+        "inputs collected",
+        extra={
+            "output_shell": archive.output_shell_partname,
+            "template_slide_count": archive.slide_count,
+            "input_slide_count": len(inputs),
+        },
+    )
 
     out_parts = build_output(
         archive.parts,
-        archive.slide_xmls,
-        archive.layout_rids,
-        designs,
+        archive.output_shell_xml,
+        archive.output_shell_partname,
         inputs,
-        plan,
         dspec,
     )
 
     write_archive(out_parts, output_path)
-    print(f"[builder] wrote {output_path} ({os.path.getsize(output_path)} bytes)")
+    logger.info("build finished", extra={"output": output_path, "bytes": os.path.getsize(output_path)})

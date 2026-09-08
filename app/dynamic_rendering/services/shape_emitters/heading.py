@@ -7,6 +7,7 @@ from typing import Any
 
 from lxml import etree
 
+from app.dynamic_rendering.constants.template_design import FIXED_HEADING_FONT_PT
 from app.dynamic_rendering.constants.xml_namespaces import R
 from app.dynamic_rendering.domain.models.design_spec import DesignSpec
 from app.dynamic_rendering.utils.xml.helpers import local_name, q
@@ -26,18 +27,19 @@ from app.dynamic_rendering.utils.xml.shape_mutators import (
 
 def emit_heading(spTree: etree._Element, item: dict[str, Any], dspec: DesignSpec, id_state: dict[str, int]) -> None:
     emitted = False
-    if dspec.heading_pill_el is not None:
-        pill = clone_and_place(dspec.heading_pill_el, item["off"], item["ext"])
-        set_shape_fill(pill, dspec.heading_fill)
+    if dspec.question_pill_el is not None:
+        pill = clone_and_place(dspec.question_pill_el, item["off"], item["ext"])
+        set_shape_fill(pill, dspec.question_pill_fill)
         renumber_ids(pill, id_state)
         spTree.append(pill)
         emitted = True
-    if dspec.heading_label_el is not None:
-        label = clone_and_place(dspec.heading_label_el, item["label_off"], item["label_ext"])
+    if dspec.question_pill_label_el is not None:
+        label = clone_and_place(dspec.question_pill_label_el, item["label_off"], item["label_ext"])
         set_text(label, item["label_text"])
-        set_all_run_colors(label, dspec.heading_text_color)
-        if dspec.heading_font:
-            set_all_run_fonts(label, dspec.heading_font)
+        set_all_run_colors(label, dspec.question_pill_text_color)
+        if dspec.question_pill_font:
+            set_all_run_fonts(label, dspec.question_pill_font)
+        set_all_run_sizes(label, FIXED_HEADING_FONT_PT)
         renumber_ids(label, id_state)
         spTree.append(label)
         emitted = True
@@ -62,14 +64,16 @@ def emit_title_heading(
 
     if dspec.title_banner_el is not None:
         banner = clone_and_place(dspec.title_banner_el, item["off"], item["ext"])
-        set_shape_fill(banner, dspec.heading_fill)
+        set_shape_fill(banner, dspec.question_pill_fill)
         if dspec.title_label_el is None and item.get("label_text"):
             set_text(banner, item["label_text"])
-            set_all_run_colors(banner, dspec.heading_text_color)
-            if dspec.heading_font:
-                set_all_run_fonts(banner, dspec.heading_font)
+            set_all_run_colors(banner, dspec.question_pill_text_color)
+            if dspec.question_pill_font:
+                set_all_run_fonts(banner, dspec.question_pill_font)
             if item.get("label_font_size_pt") is not None:
                 set_all_run_sizes(banner, item["label_font_size_pt"])
+            else:
+                set_all_run_sizes(banner, FIXED_HEADING_FONT_PT)
             if wrap_mode:
                 enable_text_wrapping(banner)
         renumber_ids(banner, id_state)
@@ -78,11 +82,13 @@ def emit_title_heading(
     if dspec.title_label_el is not None:
         label = clone_and_place(dspec.title_label_el, item["label_off"], item["label_ext"])
         set_text(label, item["label_text"])
-        set_all_run_colors(label, dspec.heading_text_color)
-        if dspec.heading_font:
-            set_all_run_fonts(label, dspec.heading_font)
+        set_all_run_colors(label, dspec.question_pill_text_color)
+        if dspec.question_pill_font:
+            set_all_run_fonts(label, dspec.question_pill_font)
         if item.get("label_font_size_pt") is not None:
             set_all_run_sizes(label, item["label_font_size_pt"])
+        else:
+            set_all_run_sizes(label, FIXED_HEADING_FONT_PT)
         if wrap_mode:
             enable_text_wrapping(label)
         renumber_ids(label, id_state)

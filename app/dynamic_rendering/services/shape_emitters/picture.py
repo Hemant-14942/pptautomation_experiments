@@ -1,37 +1,19 @@
-"""Emit picture shapes and skip logo duplicates."""
+"""Emit picture shapes from classified input items."""
 
 from __future__ import annotations
 
 import copy
+import logging
 from typing import Any
 
 from lxml import etree
 
-from app.dynamic_rendering.constants.shape_geometry import (
-    LOGO_DUPLICATE_POSITION_TOLERANCE,
-    LOGO_DUPLICATE_SIZE_TOLERANCE,
-)
 from app.dynamic_rendering.constants.xml_namespaces import R
 from app.dynamic_rendering.domain.models.design_spec import DesignSpec
 from app.dynamic_rendering.utils.xml.helpers import q
-from app.dynamic_rendering.utils.xml.shape_mutators import renumber_ids, rects_close, strip_blip_ext_lst
+from app.dynamic_rendering.utils.xml.shape_mutators import renumber_ids, strip_blip_ext_lst
 
-
-def _looks_like_logo_duplicate(item: dict[str, Any], dspec: DesignSpec) -> bool:
-    if dspec.logo_el is None or dspec.logo_ext is None:
-        return False
-    ext = item.get("ext")
-    if not ext:
-        return False
-    return rects_close(
-        item.get("off") or (0, 0),
-        ext,
-        item.get("off") or (0, 0),
-        dspec.logo_ext,
-        tol=LOGO_DUPLICATE_POSITION_TOLERANCE,
-    ) and abs(ext[0] - dspec.logo_ext[0]) < LOGO_DUPLICATE_SIZE_TOLERANCE and abs(
-        ext[1] - dspec.logo_ext[1]
-    ) < LOGO_DUPLICATE_SIZE_TOLERANCE
+logger = logging.getLogger(__name__)
 
 
 def emit_picture(
@@ -44,9 +26,6 @@ def emit_picture(
     out_parts: dict[str, bytes],
     pic_media_state: dict[str, int],
 ) -> None:
-    if _looks_like_logo_duplicate(item, dspec):
-        return
-
     clone = copy.deepcopy(item["xml"])
     blip = clone.find(".//" + q("a:blip"))
     if blip is None:
@@ -56,7 +35,7 @@ def emit_picture(
 
     image_bytes = item.get("image_bytes")
     if image_bytes is None:
-        print("[builder] warning: dropped a picture with no resolvable source image")
+        logger.warning("dropped picture with no resolvable source image")
         return
 
     pic_media_state["next"] += 1

@@ -7,6 +7,7 @@ from typing import Any
 
 from lxml import etree
 
+from app.dynamic_rendering.constants.template_design import FIXED_BODY_FONT_PT
 from app.dynamic_rendering.domain.models.design_spec import DesignSpec
 from app.dynamic_rendering.utils.xml.helpers import local_name, prst_geom
 from app.dynamic_rendering.utils.xml.shape_mutators import (
@@ -15,6 +16,7 @@ from app.dynamic_rendering.utils.xml.shape_mutators import (
     renumber_ids,
     set_all_run_colors,
     set_all_run_fonts,
+    set_all_run_sizes,
     set_shape_fill,
     set_text,
 )
@@ -49,6 +51,7 @@ def emit_option(spTree: etree._Element, item: dict[str, Any], dspec: DesignSpec,
             set_all_run_colors(label_el, dspec.option_text_color)
             if dspec.option_font:
                 set_all_run_fonts(label_el, dspec.option_font)
+            set_all_run_sizes(label_el, FIXED_BODY_FONT_PT)
         renumber_ids(clone, id_state)
         spTree.append(clone)
     else:
@@ -65,5 +68,6 @@ def emit_option(spTree: etree._Element, item: dict[str, Any], dspec: DesignSpec,
             set_all_run_colors(label, dspec.option_text_color)
             if dspec.option_font:
                 set_all_run_fonts(label, dspec.option_font)
+            set_all_run_sizes(label, FIXED_BODY_FONT_PT)
             renumber_ids(label, id_state)
             spTree.append(label)
