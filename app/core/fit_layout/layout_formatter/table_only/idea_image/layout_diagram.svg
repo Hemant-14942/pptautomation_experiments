@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 470" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="470" fill="#f5f5f5"/>
+  <text x="400" y="28" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">table_only slide (nothing on slide except the table)</text>
+  <text x="400" y="48" font-size="10" text-anchor="middle" fill="#666">no heading, no text, no images, no question pill</text>
+
+  <!-- Slide canvas -->
+  <rect x="20" y="60" width="760" height="380" fill="white" stroke="#ccc" stroke-width="2"/>
+
+  <!-- Ghost heading pill zone (not on slide, just shows where box top aligns) -->
+  <rect x="45" y="75" width="380" height="33" rx="8" fill="#e8e8e8" stroke="#bbb" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="235" y="96" font-size="11" text-anchor="middle" fill="#999">heading pill zone (not on this slide type)</text>
+
+  <!-- Gap: heading end to table box top -->
+  <line x1="45" y1="108" x2="45" y2="123" stroke="#FFC107" stroke-width="2" stroke-dasharray="3,3"/>
+  <text x="52" y="118" font-size="9" fill="#c99400">box starts at 5.151in (below pill)</text>
+
+  <!-- TABLE BOX: 80% width, vertically centered table inside -->
+  <rect x="45" y="123" width="710" height="290" rx="4" fill="#FFF8E1" stroke="#F57C00" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="400" y="145" font-size="12" font-weight="bold" text-anchor="middle" fill="#E65100">TABLE PLACEMENT BOX</text>
+
+  <!-- Sample table centered inside box -->
+  <rect x="100" y="175" width="600" height="180" rx="2" fill="white" stroke="#F57C00" stroke-width="1.5"/>
+  <line x1="100" y1="205" x2="700" y2="205" stroke="#F57C00" stroke-width="0.5"/>
+  <line x1="100" y1="235" x2="700" y2="235" stroke="#F57C00" stroke-width="0.5"/>
+  <line x1="100" y1="265" x2="700" y2="265" stroke="#F57C00" stroke-width="0.5"/>
+  <line x1="100" y1="295" x2="700" y2="295" stroke="#F57C00" stroke-width="0.5"/>
+  <line x1="250" y1="175" x2="250" y2="355" stroke="#F57C00" stroke-width="0.5"/>
+  <line x1="400" y1="175" x2="400" y2="355" stroke="#F57C00" stroke-width="0.5"/>
+  <line x1="550" y1="175" x2="550" y2="355" stroke="#F57C00" stroke-width="0.5"/>
+  <text x="175" y="195" font-size="10" text-anchor="middle" fill="#666">Col A</text>
+  <text x="325" y="195" font-size="10" text-anchor="middle" fill="#666">Col B</text>
+  <text x="475" y="195" font-size="10" text-anchor="middle" fill="#666">Col C</text>
+  <text x="625" y="195" font-size="10" text-anchor="middle" fill="#666">Col D</text>
+  <text x="400" y="280" font-size="10" text-anchor="middle" fill="#888" font-style="italic">table centered vertically in box</text>
+
+  <!-- Equal vertical padding inside box -->
+  <line x1="30" y1="175" x2="40" y2="175" stroke="#9C27B0" stroke-width="1"/>
+  <line x1="30" y1="355" x2="40" y2="355" stroke="#9C27B0" stroke-width="1"/>
+  <text x="12" y="268" font-size="9" fill="#9C27B0" transform="rotate(-90 12 268)">equal gap</text>
+
+  <!-- Bottom margin -->
+  <line x1="45" y1="413" x2="45" y2="428" stroke="#FFC107" stroke-width="2" stroke-dasharray="3,3"/>
+  <text x="52" y="425" font-size="9" fill="#c99400">1in bottom margin</text>
+
+  <!-- Width label -->
+  <line x1="45" y1="445" x2="755" y2="445" stroke="#999" stroke-width="1"/>
+  <text x="400" y="460" font-size="10" text-anchor="middle" fill="#999">32in wide (80% of slide)  |  1in left margin</text>
+
+  <!-- Size notes -->
+  <text x="60" y="400" font-size="9" fill="#888">Position: 1in left, 5.151in top</text>
+  <text x="60" y="412" font-size="9" fill="#888">Box height: ~16.35in (to 1in above slide bottom)</text>
+
+  <!-- Overflow strategy callout -->
+  <rect x="480" y="330" width="280" height="95" rx="4" fill="#E3F2FD" stroke="#1565C0" stroke-width="1"/>
+  <text x="620" y="350" font-size="10" font-weight="bold" text-anchor="middle" fill="#1565C0">If table too big for box:</text>
+  <text x="620" y="368" font-size="9" text-anchor="middle" fill="#333">1. Scale row heights + col widths</text>
+  <text x="620" y="382" font-size="9" text-anchor="middle" fill="#333">   proportionally (recommended)</text>
+  <text x="620" y="396" font-size="9" text-anchor="middle" fill="#333">2. Or shrink cell font sizes</text>
+  <text x="620" y="410" font-size="9" text-anchor="middle" fill="#888">(no normAutofit on tables in PPT)</text>
+
+  <!-- Legend -->
+  <g transform="translate(20, 452)">
+    <line x1="0" y1="0" x2="20" y2="0" stroke="#F57C00" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="30" y="4" font-size="10" fill="#000">Table placement box (80% width, v-center)</text>
+  </g>
+</svg>

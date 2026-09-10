@@ -136,6 +136,30 @@ def enable_text_wrapping(el: etree._Element) -> None:
         pPr.set("algn", "l")
 
 
+def enable_shrink_to_fit(el: etree._Element) -> None:
+    """PowerPoint 'Shrink text on overflow' for a text box.
+
+    XML added under bodyPr:
+      a:normAutofit
+
+    If text is too long for the box, PowerPoint reduces font size until it fits.
+    Use on question text and MCQ answer text boxes (not on tables).
+    """
+    txBody = el.find(q("p:txBody"))
+    if txBody is None:
+        txBody = el.find(q("a:txBody"))
+    if txBody is None:
+        return
+    bodyPr = txBody.find(q("a:bodyPr"))
+    if bodyPr is None:
+        return
+    for old_tag in ("normAutofit", "spAutoFit", "noAutofit"):
+        old_child = bodyPr.find(q(f"a:{old_tag}"))
+        if old_child is not None:
+            bodyPr.remove(old_child)
+    etree.SubElement(bodyPr, q("a:normAutofit"))
+
+
 def clone_and_place(el: etree._Element, off: tuple[int, int] | None, ext: tuple[int, int] | None) -> etree._Element:
     # Make a complete copy of the shape element so we don't change the original
     clone = copy.deepcopy(el)

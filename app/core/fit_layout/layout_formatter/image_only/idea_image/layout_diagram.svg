@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1200 920" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="920" fill="#f5f5f5"/>
+  <text x="600" y="28" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">image_only slide layouts (pictures only, no text)</text>
+  <text x="600" y="50" font-size="11" text-anchor="middle" fill="#666">Each image keeps its aspect ratio and is centered inside its orange slot box</text>
+
+  <!-- ========== CASE 1: single image ========== -->
+  <rect x="20" y="70" width="280" height="380" fill="#fff" stroke="#ddd" stroke-width="2"/>
+  <text x="160" y="92" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">1 image</text>
+  <text x="160" y="110" font-size="10" text-anchor="middle" fill="#666">big centered hero box (85% area)</text>
+
+  <rect x="35" y="125" width="250" height="310" fill="white" stroke="#ccc" stroke-width="1"/>
+  <!-- margin -->
+  <rect x="70" y="160" width="180" height="240" rx="3" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5,5"/>
+  <circle cx="160" cy="270" r="40" fill="none" stroke="#ea580c" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="160" y="275" font-size="11" text-anchor="middle" fill="#666">Image 1</text>
+  <text x="160" y="450" font-size="9" text-anchor="middle" fill="#888">centered, as large as possible</text>
+
+  <!-- ========== CASE 2: two images ========== -->
+  <rect x="320" y="70" width="280" height="380" fill="#fff" stroke="#ddd" stroke-width="2"/>
+  <text x="460" y="92" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">2 images</text>
+  <text x="460" y="110" font-size="10" text-anchor="middle" fill="#666">left half | right half</text>
+
+  <rect x="335" y="125" width="250" height="310" fill="white" stroke="#ccc" stroke-width="1"/>
+  <rect x="345" y="140" width="112" height="280" rx="3" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5,5"/>
+  <circle cx="401" cy="270" r="28" fill="none" stroke="#ea580c" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="401" y="275" font-size="10" text-anchor="middle" fill="#666">Img 1</text>
+
+  <rect x="463" y="140" width="112" height="280" rx="3" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5,5"/>
+  <circle cx="519" cy="270" r="28" fill="none" stroke="#ea580c" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="519" y="275" font-size="10" text-anchor="middle" fill="#666">Img 2</text>
+  <text x="460" y="450" font-size="9" text-anchor="middle" fill="#888">50% width each, 0.5in gap</text>
+
+  <!-- ========== CASE 3a: three images balanced (recommended) ========== -->
+  <rect x="620" y="70" width="280" height="380" fill="#fff" stroke="#ddd" stroke-width="2"/>
+  <text x="760" y="92" font-size="14" font-weight="bold" text-anchor="middle" fill="#015500">3 images (recommended)</text>
+  <text x="760" y="110" font-size="10" text-anchor="middle" fill="#666">2 top + 1 bottom center</text>
+
+  <rect x="635" y="125" width="250" height="310" fill="white" stroke="#ccc" stroke-width="1"/>
+  <rect x="645" y="140" width="112" height="125" rx="3" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="701" y="205" font-size="9" text-anchor="middle" fill="#666">Img 1</text>
+  <rect x="763" y="140" width="112" height="125" rx="3" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="819" y="205" font-size="9" text-anchor="middle" fill="#666">Img 2</text>
+  <rect x="704" y="275" width="112" height="125" rx="3" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="760" y="340" font-size="9" text-anchor="middle" fill="#666">Img 3</text>
+  <text x="760" y="450" font-size="9" text-anchor="middle" fill="#015500">balanced - looks even on slide</text>
+
+  <!-- ========== CASE 3b: three images bottom-left (user idea) ========== -->
+  <rect x="920" y="70" width="260" height="380" fill="#fff" stroke="#ddd" stroke-width="2"/>
+  <text x="1050" y="92" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">3 images (alt)</text>
+  <text x="1050" y="110" font-size="10" text-anchor="middle" fill="#666">2 top + 1 bottom left</text>
+
+  <rect x="935" y="125" width="230" height="310" fill="white" stroke="#ccc" stroke-width="1"/>
+  <rect x="945" y="140" width="102" height="125" rx="3" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="996" y="205" font-size="9" text-anchor="middle" fill="#666">Img 1</text>
+  <rect x="1053" y="140" width="102" height="125" rx="3" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="1104" y="205" font-size="9" text-anchor="middle" fill="#666">Img 2</text>
+  <rect x="945" y="275" width="102" height="125" rx="3" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="996" y="340" font-size="9" text-anchor="middle" fill="#666">Img 3</text>
+  <text x="1050" y="450" font-size="9" text-anchor="middle" fill="#888">your idea - empty space bottom-right</text>
+
+  <!-- ========== CASE 4: four images 2x2 grid ========== -->
+  <rect x="20" y="470" width="280" height="380" fill="#fff" stroke="#ddd" stroke-width="2"/>
+  <text x="160" y="492" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">4 images</text>
+  <text x="160" y="510" font-size="10" text-anchor="middle" fill="#666">2x2 equal grid</text>
+
+  <rect x="35" y="525" width="250" height="310" fill="white" stroke="#ccc" stroke-width="1"/>
+  <rect x="45" y="540" width="112" height="140" rx="3" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="101" y="615" font-size="9" text-anchor="middle" fill="#666">Img 1</text>
+  <rect x="163" y="540" width="112" height="140" rx="3" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="219" y="615" font-size="9" text-anchor="middle" fill="#666">Img 2</text>
+  <rect x="45" y="690" width="112" height="140" rx="3" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="101" y="765" font-size="9" text-anchor="middle" fill="#666">Img 3</text>
+  <rect x="163" y="690" width="112" height="140" rx="3" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="219" y="765" font-size="9" text-anchor="middle" fill="#666">Img 4</text>
+
+  <!-- ========== CASE 5+: auto grid ========== -->
+  <rect x="320" y="470" width="280" height="380" fill="#fff" stroke="#ddd" stroke-width="2"/>
+  <text x="460" y="492" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">5+ images</text>
+  <text x="460" y="510" font-size="10" text-anchor="middle" fill="#666">auto grid (sqrt rule)</text>
+
+  <rect x="335" y="525" width="250" height="310" fill="white" stroke="#ccc" stroke-width="1"/>
+  <!-- 6 images = 3 cols x 2 rows -->
+  <rect x="345" y="540" width="72" height="140" rx="2" fill="none" stroke="#ea580c" stroke-width="1" stroke-dasharray="4,4"/>
+  <rect x="424" y="540" width="72" height="140" rx="2" fill="none" stroke="#ea580c" stroke-width="1" stroke-dasharray="4,4"/>
+  <rect x="503" y="540" width="72" height="140" rx="2" fill="none" stroke="#ea580c" stroke-width="1" stroke-dasharray="4,4"/>
+  <rect x="345" y="690" width="72" height="140" rx="2" fill="none" stroke="#ea580c" stroke-width="1" stroke-dasharray="4,4"/>
+  <rect x="424" y="690" width="72" height="140" rx="2" fill="none" stroke="#ea580c" stroke-width="1" stroke-dasharray="4,4"/>
+  <rect x="503" y="690" width="72" height="140" rx="2" fill="none" stroke="#ea580c" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="460" y="850" font-size="9" text-anchor="middle" fill="#888">example: 6 images = 3x2 grid</text>
+
+  <!-- ========== BONUS: 3-image mosaic (alternative idea) ========== -->
+  <rect x="620" y="470" width="560" height="380" fill="#fff" stroke="#ddd" stroke-width="2"/>
+  <text x="900" y="492" font-size="14" font-weight="bold" text-anchor="middle" fill="#1565C0">Bonus idea: 3-image mosaic</text>
+  <text x="900" y="510" font-size="10" text-anchor="middle" fill="#666">1 big left + 2 stacked right (PowerPoint style)</text>
+
+  <rect x="635" y="525" width="530" height="310" fill="white" stroke="#ccc" stroke-width="1"/>
+  <rect x="645" y="540" width="250" height="280" rx="3" fill="none" stroke="#1565C0" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="770" y="685" font-size="11" text-anchor="middle" fill="#1565C0">Img 1 (large)</text>
+  <rect x="905" y="540" width="250" height="135" rx="3" fill="none" stroke="#1565C0" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="1030" y="610" font-size="10" text-anchor="middle" fill="#666">Img 2</text>
+  <rect x="905" y="685" width="250" height="135" rx="3" fill="none" stroke="#1565C0" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="1030" y="755" font-size="10" text-anchor="middle" fill="#666">Img 3</text>
+  <text x="900" y="850" font-size="9" text-anchor="middle" fill="#888">good when image 1 is the main photo</text>
+
+  <!-- Legend -->
+  <g transform="translate(20, 870)">
+    <line x1="0" y1="0" x2="20" y2="0" stroke="#ea580c" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="30" y="4" font-size="11" fill="#000">Image slot box (picture scaled to fit inside, aspect ratio kept)</text>
+
+    <rect x="420" y="-8" width="15" height="15" fill="white" stroke="#ccc"/>
+    <text x="440" y="4" font-size="11" fill="#000">Slide canvas with 1in margin</text>
+
+    <text x="700" y="4" font-size="11" fill="#015500">Recommended default: balanced 3-image layout</text>
+  </g>
+</svg>

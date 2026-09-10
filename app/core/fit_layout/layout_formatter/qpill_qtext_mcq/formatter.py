@@ -16,6 +16,7 @@ from lxml import etree
 
 from app.core.template_converter.xml_utils import (
     clone_and_place,
+    enable_shrink_to_fit,
     enable_text_wrapping,
     place_group,
 )
@@ -61,11 +62,12 @@ def format_question_label(label_el: etree._Element, label_text: str = "Question"
 
 def format_question_text(text_el: etree._Element) -> etree._Element:
     """Clone and position the question text box below the pill, wrapped
-    and left-aligned. Multi-line questions display top-anchored."""
+    and left-aligned. normAutofit shrinks font if text overflows the box."""
     off = (QUESTION_TEXT["x"], QUESTION_TEXT["y"])
     ext = (QUESTION_TEXT["width"], QUESTION_TEXT["height"])
     clone = clone_and_place(text_el, off, ext)
     enable_text_wrapping(clone)
+    enable_shrink_to_fit(clone)
     return clone
 
 
@@ -102,11 +104,12 @@ def format_mcq_option_label(option_idx: int, label_el: etree._Element) -> etree.
 
 def format_mcq_answer_text(option_idx: int, text_el: etree._Element) -> etree._Element:
     """Clone and position the answer text box to the right of the pill,
-    wrapped and left-aligned, full remaining slide width."""
+    wrapped and left-aligned. normAutofit shrinks font if answer overflows."""
     option = MCQ_OPTIONS[option_idx]
     text_box = option["text_box"]
     off = (text_box["x"], text_box["y"])
     ext = (text_box["width"], text_box["height"])
     clone = clone_and_place(text_el, off, ext)
     enable_text_wrapping(clone)
+    enable_shrink_to_fit(clone)
     return clone

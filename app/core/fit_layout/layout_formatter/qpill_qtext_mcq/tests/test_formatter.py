@@ -28,6 +28,10 @@ from app.core.fit_layout.layout_formatter.qpill_qtext_mcq.formatter import (
     format_question_text,
     is_group,
 )
+from app.core.fit_layout.layout_formatter.qpill_shape_utils import (
+    find_mcq_answer_text_elements,
+    find_question_text_element,
+)
 from app.utils.xml_helpers import prst_geom
 
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
@@ -73,12 +77,10 @@ def find_shapes(slide) -> dict | None:
             question_label_el = elem
         elif text in ("A", "B", "C", "D") and text not in mcq_label_els:
             mcq_label_els[text] = elem
-        elif len(text) > 30 and question_text_el is None:
-            question_text_el = elem
-        elif len(mcq_text_els) < 4:
-            # Any other non-empty text box is a candidate answer -- answers
-            # can be short (numbers, single words), so no length floor here.
-            mcq_text_els.append(elem)
+
+    question_text_el = find_question_text_element(slide, use_mcq_ceiling=True)
+    if question_text_el is not None:
+        mcq_text_els = find_mcq_answer_text_elements(slide, question_text_el)
 
     if not (
         question_pill_el is not None

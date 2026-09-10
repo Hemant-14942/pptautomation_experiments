@@ -37,4 +37,6 @@ TITLE_HEADING_MIN_FONT_SCALE = 0.6          # shrink font to 60% max, not smalle
 TITLE_HEADING_DEFAULT_FONT_PT = 40.0        # fallback if template has no font size
 
 # Gap below title banner before body content starts (used when shifting shapes down).
-PILL_CONTENT_GAP = 500_000  # ~0.55 inch gap under title banner
+# PILL_CONTENT_GAP = 500_000  # ~0.55 inch gap under title banner
+# for fit layout, we don't want any gap below the title banner
+PILL_CONTENT_GAP = 0
