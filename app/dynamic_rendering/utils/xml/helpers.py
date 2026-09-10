@@ -50,6 +50,16 @@ def prst_geom(sp: etree._Element) -> str | None:
     return geom.get("prst") if geom is not None else None
 
 
+def parse_emu(value: str | int | float | None, default: int = 0) -> int:
+    """Parse an EMU attribute value; some decks store floats like '5729298.0'."""
+    if value is None:
+        return default
+    try:
+        return int(float(value))
+    except (TypeError, ValueError):
+        return default
+
+
 def off_ext(
     elem: etree._Element,
     pref: str,
@@ -79,8 +89,8 @@ def off_ext(
     off = xfrm.find(q("a:off"))           # offset = where shape starts
     ext = xfrm.find(q("a:ext"))           # extent = how big shape is
 
-    off_t = (int(off.get("x", 0)), int(off.get("y", 0))) if off is not None else None
-    ext_t = (int(ext.get("cx", 0)), int(ext.get("cy", 0))) if ext is not None else None
+    off_t = (parse_emu(off.get("x")), parse_emu(off.get("y"))) if off is not None else None
+    ext_t = (parse_emu(ext.get("cx")), parse_emu(ext.get("cy"))) if ext is not None else None
     return off_t, ext_t
 
 

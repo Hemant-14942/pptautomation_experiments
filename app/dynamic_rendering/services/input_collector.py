@@ -11,6 +11,11 @@ from typing import Any
 
 from pptx import Presentation
 
+from app.dynamic_rendering.services.format_layout import (
+    detect_slide_type,
+    format_slide,
+    parse_input_slide_signature,
+)
 from app.dynamic_rendering.domain.models.design_spec import DesignSpec
 from app.dynamic_rendering.services.classifiers.heading_adjust import (
     apply_detected_heading,
@@ -30,15 +35,20 @@ from app.dynamic_rendering.utils.xml.helpers import local_name, off_ext, q
 
 
 def collect_inputs(input_path: str, dspec: DesignSpec | None = None) -> list[dict[str, Any]]:
-    """Per input slide: index + list of classified shape items."""
+    """Per input slide: slide_type (if detected) + classified shape items for emitters."""
     prs = Presentation(input_path)
+    signatures = parse_input_slide_signature(input_path)
     slide_width, slide_height = prs.slide_width, prs.slide_height
     out: list[dict[str, Any]] = []
 
     for idx, slide in enumerate(prs.slides):
+        slide_type = detect_slide_type(signatures[idx], slide, prs)
+        if slide_type is not None:
+            format_slide(slide, slide_type, prs)
+
         sptree = slide._element.find(q("p:cSld") + "/" + q("p:spTree"))
         if sptree is None:
-            out.append({"index": idx, "items": []})
+            out.append({"index": idx, "slide_type": slide_type, "items": []})
             continue
 
         children = [c for c in list(sptree) if local_name(c) in {"sp", "pic", "grpSp", "graphicFrame"}]
@@ -88,6 +98,6 @@ def collect_inputs(input_path: str, dspec: DesignSpec | None = None) -> list[dic
 
         heading = detected_heading_for_slide(slide, idx, prs)
         items = apply_detected_heading(items, heading, dspec, slide_width)
-        out.append({"index": idx, "items": items})
+        out.append({"index": idx, "slide_type": slide_type, "items": items})
 
     return out

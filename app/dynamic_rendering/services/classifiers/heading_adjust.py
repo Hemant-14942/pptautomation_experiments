@@ -10,7 +10,7 @@ from app.dynamic_rendering.constants.shape_geometry import LABEL_PAIRING_TOLERAN
 from app.dynamic_rendering.domain.models.design_spec import DesignSpec
 from app.dynamic_rendering.services.text.heading_detector import extract_text_from_slide
 from app.dynamic_rendering.services.text.title_heading_fit import fit_title_heading
-from app.dynamic_rendering.utils.xml.helpers import local_name, off_ext, q, text_of
+from app.dynamic_rendering.utils.xml.helpers import local_name, off_ext, parse_emu, q, text_of
 
 
 def find_paired_label(children: list, i: int, off, ext, claimed: set) -> etree._Element | None:
@@ -59,8 +59,8 @@ def item_off_ext(item: dict[str, Any]):
         return None, None
     off_el = xfrm.find(q("a:off"))
     ext_el = xfrm.find(q("a:ext"))
-    off_t = (int(off_el.get("x", 0)), int(off_el.get("y", 0))) if off_el is not None else None
-    ext_t = (int(ext_el.get("cx", 0)), int(ext_el.get("cy", 0))) if ext_el is not None else None
+    off_t = (parse_emu(off_el.get("x")), parse_emu(off_el.get("y"))) if off_el is not None else None
+    ext_t = (parse_emu(ext_el.get("cx")), parse_emu(ext_el.get("cy"))) if ext_el is not None else None
     return off_t, ext_t
 
 
@@ -82,14 +82,14 @@ def nudge_y(item: dict[str, Any], dy: int) -> None:
             continue
         off_el = xfrm.find(q("a:off"))
         if off_el is not None:
-            off_el.set("y", str(int(off_el.get("y", 0)) + dy))
+            off_el.set("y", str(parse_emu(off_el.get("y")) + dy))
         return
     xfrm = xml.find(q("p:xfrm"))
     if xfrm is None:
         return
     off_el = xfrm.find(q("a:off"))
     if off_el is not None:
-        off_el.set("y", str(int(off_el.get("y", 0)) + dy))
+        off_el.set("y", str(parse_emu(off_el.get("y")) + dy))
 
 
 def shift_content_below_pill(items: list[dict[str, Any]]) -> None:
