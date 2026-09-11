@@ -18,6 +18,7 @@ OUTPUT_TEMPLATE_SLIDE_INDEX = -1
 
 FIXED_FONT = "Cambria"
 FIXED_HEADING_FONT_PT = 80
+QUESTION_LABEL_FONT_PT = 60  # Question pill label (smaller than heading to fit in pill)
 FIXED_BODY_FONT_PT = 50
 
 

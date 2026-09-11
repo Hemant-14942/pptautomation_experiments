@@ -22,8 +22,8 @@ if __name__ == "__main__":
 
     run(
         input_path=str(paths.input_dir / "p2.pptx"),
-        template_path=str(paths.templates_dir / "green.pptx"),
-        output_path=str(paths.output_dir / "dynamic_rendering_test.pptx"),
+        template_path=str(paths.templates_dir / "standard-red.pptx"),
+        output_path=str(paths.output_dir / "standard-red_test.pptx"),
     )
 
 # command to run the script

@@ -7,7 +7,7 @@ from typing import Any
 
 from lxml import etree
 
-from app.dynamic_rendering.constants.template_design import FIXED_HEADING_FONT_PT
+from app.dynamic_rendering.constants.template_design import FIXED_HEADING_FONT_PT, QUESTION_LABEL_FONT_PT
 from app.dynamic_rendering.constants.xml_namespaces import R
 from app.dynamic_rendering.domain.models.design_spec import DesignSpec
 from app.dynamic_rendering.utils.xml.helpers import local_name, q
@@ -39,7 +39,7 @@ def emit_heading(spTree: etree._Element, item: dict[str, Any], dspec: DesignSpec
         set_all_run_colors(label, dspec.question_pill_text_color)
         if dspec.question_pill_font:
             set_all_run_fonts(label, dspec.question_pill_font)
-        set_all_run_sizes(label, FIXED_HEADING_FONT_PT)
+        set_all_run_sizes(label, QUESTION_LABEL_FONT_PT)
         renumber_ids(label, id_state)
         spTree.append(label)
         emitted = True
