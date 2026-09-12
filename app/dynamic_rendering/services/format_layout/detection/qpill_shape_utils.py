@@ -5,11 +5,14 @@ from __future__ import annotations
 from lxml import etree
 from pptx.slide import Slide
 
+from app.dynamic_rendering.services.classifiers.option_label import parse_input_option_label
+from app.dynamic_rendering.services.format_layout.detection.input_mcq_options import (
+    collect_input_mcq_options,
+)
 from app.dynamic_rendering.utils.xml.helpers import local_name, prst_geom
 
 INCH_EMU = 914_400
 QUESTION_LABEL_TEXT = "Question"
-OPTION_LABEL_TEXTS = frozenset({"A", "B", "C", "D"})
 PILL_TO_TEXT_GAP_EMU = int(0.1 * INCH_EMU)
 MCQ_ANSWER_TOP_TOLERANCE_EMU = int(1.5 * INCH_EMU)
 
@@ -19,7 +22,7 @@ def is_group(el: etree._Element) -> bool:
 
 
 def _is_excluded_label(text: str) -> bool:
-    return text == QUESTION_LABEL_TEXT or text in OPTION_LABEL_TEXTS
+    return text == QUESTION_LABEL_TEXT or parse_input_option_label(text) is not None
 
 
 def question_pill_bottom_emu(slide: Slide) -> int | None:
@@ -30,13 +33,8 @@ def question_pill_bottom_emu(slide: Slide) -> int | None:
 
 
 def first_mcq_option_top_emu(slide: Slide) -> int | None:
-    tops: list[int] = []
-    for sp in slide.shapes:
-        elem = sp._element
-        if is_group(elem) or prst_geom(elem) == "ellipse":
-            if sp.top is not None:
-                tops.append(sp.top)
-    return min(tops) if tops else None
+    options = collect_input_mcq_options(slide)
+    return options[0]["top"] if options else None
 
 
 def find_question_text_element(
@@ -73,6 +71,8 @@ def find_question_text_element(
 def find_mcq_answer_text_elements(
     slide: Slide,
     question_text_el: etree._Element,
+    *,
+    limit: int | None = None,
 ) -> list[etree._Element]:
     mcq_top = first_mcq_option_top_emu(slide)
     min_top = (mcq_top - MCQ_ANSWER_TOP_TOLERANCE_EMU) if mcq_top is not None else 0
@@ -92,7 +92,10 @@ def find_mcq_answer_text_elements(
         candidates.append((sp.top, elem))
 
     candidates.sort(key=lambda item: item[0])
-    return [el for _, el in candidates[:4]]
+    elements = [el for _, el in candidates]
+    if limit is not None:
+        return elements[:limit]
+    return elements
 
 
 def has_question_text_below_pill(slide: Slide) -> bool:

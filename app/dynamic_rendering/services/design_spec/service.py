@@ -67,6 +67,9 @@ def get_design_spec(template_path: str, force_refresh: bool = False) -> DesignSp
         source = "heuristic"
         logger.info("scanned design tokens", extra={"tokens": tokens})
         save_disk_tokens(cache_file, file_hash, tokens, source)
+    elif "option_labels" not in tokens:
+        tokens = {**tokens, "option_labels": scan["tokens"].get("option_labels")}
+        save_disk_tokens(cache_file, file_hash, tokens, source)
 
     spec = spec_from_tokens_and_scan(tokens, source, scan)
     memory_cache_set(cache_key, spec)

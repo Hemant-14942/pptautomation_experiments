@@ -7,9 +7,16 @@ from typing import Any
 
 from lxml import etree
 
-from app.dynamic_rendering.constants.shape_geometry import HEADING_CX, HEADING_CY, OPTION_CX, OPTION_CY
+from app.dynamic_rendering.constants.shape_geometry import HEADING_CX, HEADING_CY
 from app.dynamic_rendering.services.classifiers.heading_adjust import find_paired_label
-from app.dynamic_rendering.utils.xml.helpers import off_ext, prst_geom, text_of
+from app.dynamic_rendering.services.classifiers.option_label import (
+    find_input_option_ellipse_el,
+    find_input_option_label_el,
+    is_input_option_ellipse_el,
+    is_input_option_group_el,
+    parse_input_option_label,
+)
+from app.dynamic_rendering.utils.xml.helpers import local_name, off_ext, prst_geom, text_of
 
 
 def classify_mcq_heading(
@@ -51,18 +58,14 @@ def classify_standalone_option(
     ext,
     claimed: set,
 ) -> dict[str, Any] | None:
-    geom = prst_geom(child)
-    if not (
-        geom == "ellipse"
-        and ext
-        and OPTION_CX[0] <= ext[0] <= OPTION_CX[1]
-        and OPTION_CY[0] <= ext[1] <= OPTION_CY[1]
-    ):
+    if not is_input_option_ellipse_el(child):
         return None
 
     label = find_paired_label(children, i, off, ext, claimed)
-    label_text = text_of(label) if label is not None else "?"
-    letter = (label_text.strip()[:1] or "?").upper()
+    label_text = text_of(label) if label is not None else ""
+    letter = parse_input_option_label(label_text)
+    if letter is None:
+        return None
     label_off, label_ext = off_ext(label, "p:spPr") if label is not None else (off, ext)
     return {
         "kind": "option",
@@ -79,17 +82,18 @@ def classify_standalone_option(
 
 
 def classify_grouped_option(child: etree._Element) -> dict[str, Any] | None:
-    from app.dynamic_rendering.utils.xml.helpers import local_name
+    if not is_input_option_group_el(child):
+        return None
 
     inner_sps = [c for c in child if local_name(c) == "sp"]
-    pill_el = next((c for c in inner_sps if prst_geom(c) == "ellipse"), None)
-    label_el = next((c for c in inner_sps if c is not pill_el and text_of(c)), None)
-    if pill_el is None:
+    pill_el = find_input_option_ellipse_el(inner_sps)
+    label_el = find_input_option_label_el(inner_sps, pill_el)
+    if pill_el is None or label_el is None:
         return None
 
     off, ext = off_ext(child, "p:grpSpPr")
-    label_text = text_of(label_el) if label_el is not None else "?"
-    letter = (label_text.strip()[:1] or "?").upper()
+    label_text = (text_of(label_el) or "").strip()
+    letter = parse_input_option_label(label_text) or "?"
     return {
         "kind": "option",
         "grouped": True,

@@ -5,11 +5,11 @@ from lxml import etree
 from app.dynamic_rendering.services.format_layout.detection.qpill_shape_utils import is_group
 from app.dynamic_rendering.services.format_layout.formatters.qpill_qtext_image_mcq.constants import (
     IMAGE_BOX,
-    MCQ_OPTIONS,
     QUESTION_LABEL,
     QUESTION_PILL,
     QUESTION_TEXT,
 )
+from app.dynamic_rendering.services.format_layout.shared.mcq_option_layout import option_layout_for
 from app.dynamic_rendering.services.format_layout.shared.image_resizer import fit_image_to_box
 from app.dynamic_rendering.utils.xml.helpers import q
 from app.dynamic_rendering.utils.xml.shape_mutators import (
@@ -17,6 +17,7 @@ from app.dynamic_rendering.utils.xml.shape_mutators import (
     enable_shrink_to_fit,
     enable_text_wrapping,
     place_group,
+    set_text_center_align,
 )
 
 
@@ -66,7 +67,7 @@ def format_image(
 
 
 def format_mcq_option_pill(option_idx: int, pill_el: etree._Element) -> None | etree._Element:
-    option = MCQ_OPTIONS[option_idx]
+    option = option_layout_for(option_idx)
     off = (option["pill"]["x"], option["pill"]["y"])
     ext = (option["pill"]["width"], option["pill"]["height"])
     if is_group(pill_el):
@@ -76,14 +77,15 @@ def format_mcq_option_pill(option_idx: int, pill_el: etree._Element) -> None | e
 
 
 def format_mcq_option_label(option_idx: int, label_el: etree._Element) -> etree._Element:
-    option = MCQ_OPTIONS[option_idx]
+    option = option_layout_for(option_idx)
     label_box = option["label_box"]
     off = (label_box["x"], label_box["y"])
     ext = (label_box["width"], label_box["height"])
     clone = clone_and_place(label_el, off, ext)
     _set_text(clone, option["label"])
+    set_text_center_align(clone)
     return clone
 
 
 def format_mcq_answer_text(option_idx: int, text_el: etree._Element) -> etree._Element:
-    return _format_wrapped_autofit_text(text_el, MCQ_OPTIONS[option_idx]["text_box"])
+    return _format_wrapped_autofit_text(text_el, option_layout_for(option_idx)["text_box"])

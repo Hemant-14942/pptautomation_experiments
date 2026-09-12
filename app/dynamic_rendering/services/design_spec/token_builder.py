@@ -6,6 +6,7 @@ from typing import Any
 
 from app.dynamic_rendering.constants.template_design import FIXED_FONT, FIXED_HEADING_FONT_PT
 from app.dynamic_rendering.domain.models.design_spec import DesignSpec
+from app.dynamic_rendering.services.classifiers.option_label import build_template_option_labels
 
 
 def spec_from_tokens_and_scan(tokens: dict[str, Any], source: str, scan: dict[str, Any]) -> DesignSpec:
@@ -15,6 +16,7 @@ def spec_from_tokens_and_scan(tokens: dict[str, Any], source: str, scan: dict[st
         question_pill_text_color=tokens["question_pill_text_color"],
         question_pill_font=FIXED_FONT,
         option_fill=tokens["option_fill"],
+        option_labels=tokens.get("option_labels") or build_template_option_labels("upper_alpha"),
         option_text_color=tokens["option_text_color"],
         option_font=FIXED_FONT,
         table_header_fill=tokens["table_header_fill"],

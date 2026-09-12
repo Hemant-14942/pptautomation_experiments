@@ -19,6 +19,7 @@ from app.dynamic_rendering.utils.xml.shape_mutators import (
     set_all_run_sizes,
     set_shape_fill,
     set_text,
+    set_text_center_align,
 )
 
 
@@ -42,12 +43,16 @@ def emit_option(spTree: etree._Element, item: dict[str, Any], dspec: DesignSpec,
         clone = copy.deepcopy(template_el)
         place_group(clone, item["off"], item["ext"])
         inner_sps = [c for c in clone if local_name(c) == "sp"]
-        pill_el = next((c for c in inner_sps if prst_geom(c) == "ellipse"), None)
+        pill_el = next(
+            (c for c in inner_sps if prst_geom(c) in ("ellipse", "roundRect", "round2SameRect")),
+            None,
+        )
         label_el = next((c for c in inner_sps if c is not pill_el), None)
         if pill_el is not None:
             set_shape_fill(pill_el, color)
         if label_el is not None:
-            set_text(label_el, item["label_text"])
+            set_text(label_el, dspec.option_label_for(letter, item["label_text"]))
+            set_text_center_align(label_el)
             set_all_run_colors(label_el, dspec.option_text_color)
             if dspec.option_font:
                 set_all_run_fonts(label_el, dspec.option_font)
@@ -64,7 +69,8 @@ def emit_option(spTree: etree._Element, item: dict[str, Any], dspec: DesignSpec,
             label_off = item.get("label_off") or item["off"]
             label_ext = item.get("label_ext") or item["ext"]
             label = clone_and_place(label_template, label_off, label_ext)
-            set_text(label, item["label_text"])
+            set_text(label, dspec.option_label_for(letter, item["label_text"]))
+            set_text_center_align(label)
             set_all_run_colors(label, dspec.option_text_color)
             if dspec.option_font:
                 set_all_run_fonts(label, dspec.option_font)

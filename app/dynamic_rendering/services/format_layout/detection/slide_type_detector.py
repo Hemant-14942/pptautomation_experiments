@@ -4,6 +4,9 @@ from pptx.presentation import Presentation as PresentationType
 from pptx.slide import Slide
 
 from app.dynamic_rendering.constants.xml_namespaces import NS
+from app.dynamic_rendering.services.format_layout.detection.input_mcq_options import (
+    count_input_mcq_options,
+)
 from app.dynamic_rendering.services.format_layout.detection.qpill_shape_utils import (
     has_question_text_below_pill,
 )
@@ -68,15 +71,7 @@ def has_question_pill(slide: Slide) -> bool:
 
 
 def has_option_pill_shapes(slide: Slide) -> bool:
-    for sp in slide.shapes:
-        if str(sp.shape_type) == "<ShapeType.GROUP: 6>":
-            return True
-        if not hasattr(sp, "_element"):
-            continue
-        geom = sp._element.find(".//{%s}prstGeom" % NS["a"])
-        if geom is not None and geom.get("prst") == "ellipse":
-            return True
-    return False
+    return count_input_mcq_options(slide) > 0
 
 
 def has_any_text_content(slide: Slide) -> bool:
@@ -123,24 +118,7 @@ def qualifies_for_table_only_slide(
 
 
 def has_mcq_structure(slide: Slide) -> bool:
-    roundrect_count = 0
-    ellipse_count = 0
-
-    for sp in slide.shapes:
-        if hasattr(sp, "_element"):
-            elem = sp._element
-            geom = elem.find(".//{%s}prstGeom" % NS["a"])
-            if geom is not None:
-                prst = geom.get("prst")
-                if prst == "roundRect":
-                    roundrect_count += 1
-                elif prst == "ellipse":
-                    ellipse_count += 1
-
-        if str(sp.shape_type) == "<ShapeType.GROUP: 6>":
-            ellipse_count += 1
-
-    return roundrect_count >= 1 and ellipse_count >= 4
+    return has_question_pill(slide) and count_input_mcq_options(slide) >= 1
 
 
 def qualifies_for_qpill_qtext_only_slide(

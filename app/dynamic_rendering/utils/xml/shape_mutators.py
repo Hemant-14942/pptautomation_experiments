@@ -225,6 +225,29 @@ def enable_text_wrapping(el: etree._Element) -> None:
         pPr.set("algn", "l")
 
 
+def set_text_center_align(el: etree._Element) -> None:
+    """Center text horizontally and vertically inside a shape text box (e.g. MCQ option A/B/C/D)."""
+    txBody = el.find(q("p:txBody"))
+    if txBody is None:
+        txBody = el.find(q("a:txBody"))
+    if txBody is None:
+        return
+
+    bodyPr = txBody.find(q("a:bodyPr"))
+    if bodyPr is None:
+        bodyPr = etree.SubElement(txBody, q("a:bodyPr"))
+
+    bodyPr.set("anchor", "ctr")
+    bodyPr.set("anchorCtr", "0")
+
+    for p in txBody.findall(q("a:p")):
+        pPr = p.find(q("a:pPr"))
+        if pPr is None:
+            pPr = etree.Element(q("a:pPr"))
+            p.insert(0, pPr)
+        pPr.set("algn", "ctr")
+
+
 def enable_shrink_to_fit(el: etree._Element) -> None:
     """PowerPoint shrink-text-on-overflow (a:normAutofit on bodyPr)."""
     txBody = el.find(q("p:txBody"))

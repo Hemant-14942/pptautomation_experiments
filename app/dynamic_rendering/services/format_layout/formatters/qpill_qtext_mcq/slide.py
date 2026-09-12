@@ -25,16 +25,16 @@ def format_qpill_qtext_mcq_slide(slide: Slide, prs: Presentation | None = None) 
     replace_shape(sp_tree, shapes["question_label_el"], format_question_label(shapes["question_label_el"]))
     replace_shape(sp_tree, shapes["question_text_el"], format_question_text(shapes["question_text_el"]))
 
-    letters = ["A", "B", "C", "D"]
-    for opt_idx, pill_el in enumerate(shapes["mcq_pill_els"]):
+    for opt in shapes["mcq_options"]:
+        opt_idx = opt["option_idx"]
+        pill_el = opt["pill_el"]
         clone = format_mcq_option_pill(opt_idx, pill_el)
         if clone is not None:
             replace_shape(sp_tree, pill_el, clone)
-            label_el = shapes["mcq_label_els"].get(letters[opt_idx])
-            if label_el is not None:
+            label_el = opt["label_el"]
+            if label_el is not None and not opt["grouped"]:
                 replace_shape(sp_tree, label_el, format_mcq_option_label(opt_idx, label_el))
 
-        text_el = shapes["mcq_text_els"][opt_idx]
-        replace_shape(sp_tree, text_el, format_mcq_answer_text(opt_idx, text_el))
+        replace_shape(sp_tree, opt["text_el"], format_mcq_answer_text(opt_idx, opt["text_el"]))
 
     return True

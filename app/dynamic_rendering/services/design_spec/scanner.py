@@ -36,10 +36,13 @@ from app.dynamic_rendering.constants.presentation_defaults import (
 from app.dynamic_rendering.constants.shape_geometry import (
     HEADING_CX,
     HEADING_CY,
-    ICON_MAX_SIZE_FRACTION,
-    ICON_ZONE_X_FRACTION,
-    OPTION_CX,
-    OPTION_CY,
+)
+from app.dynamic_rendering.services.classifiers.option_label import (
+    build_template_option_labels,
+    find_option_label_el,
+    find_option_pill_el,
+    option_labels_from_template_samples,
+    parse_option_label,
 )
 from app.dynamic_rendering.constants.xml_namespaces import R
 from app.dynamic_rendering.utils.xml.helpers import (
@@ -56,6 +59,8 @@ _SCHEME_ALIAS = {"tx1": "dk1", "bg1": "lt1", "tx2": "dk2", "bg2": "lt2"}
 _HEX_RE = re.compile(r"^[0-9A-Fa-f]{6}$")
 
 _TYPE_HEADING_RE = re.compile(r"type\s+heading\s+here", re.I)
+_QUESTION_LABEL_RE = re.compile(r"^question$", re.I)
+_DESIGN_NOTE_RE = re.compile(r"design purpose|PS\s*-", re.I)
 
 
 def _design_slide_names(slide_names: list[str]) -> list[str]:
@@ -163,77 +168,44 @@ def _resolve_image_bytes(zf: zipfile.ZipFile, slide_name: str, rid: str) -> tupl
     return zf.read(media_path), ext
 
 
-def _rects_overlap_y(a_off, a_ext, b_off, b_ext) -> bool:
-    if not (a_off and a_ext and b_off and b_ext):
-        return False
-    return a_off[1] < b_off[1] + b_ext[1] and a_off[1] + a_ext[1] > b_off[1]
+def _is_design_notes_group(grp: etree._Element) -> bool:
+    blob = " ".join(text_of(el) for el in grp.iter() if local_name(el) == "sp")
+    return bool(_DESIGN_NOTE_RE.search(blob))
 
 
-def _scan_title_banner_on_last_slide(zf, sn, slide_width, slide_height):
-    root = etree.fromstring(zf.read(sn))
-    spTree = root.find(".//" + q("p:spTree"))
-    if spTree is None:
-        return None
-    children = [c for c in list(spTree) if local_name(c) in {"sp", "pic", "grpSp"}]
-
-    label_el = label_off = label_ext = None
-    for child in children:
-        if local_name(child) != "sp":
-            continue
-        off, ext = off_ext(child, "p:spPr")
-        if not off or off[1] >= slide_height * 0.35 or off[0] >= slide_width * 0.45:
-            continue
-        if _TYPE_HEADING_RE.search(text_of(child) or ""):
-            label_el = child
-            label_off, label_ext = off, ext
-            break
-    if label_el is None:
-        return None
-
-    banner_el = label_el if prst_geom(label_el) == "roundRect" else None
-    banner_off, banner_ext = label_off, label_ext
-    if banner_el is None:
-        best = None
-        for child in children:
-            if local_name(child) != "sp" or child is label_el:
-                continue
-            if prst_geom(child) not in {"roundRect", "round2SameRect"}:
-                continue
-            off, ext = off_ext(child, "p:spPr")
-            if not off or off[1] >= slide_height * 0.45:
-                continue
-            if not _rects_overlap_y(off, ext, label_off, label_ext):
-                continue
-            best = (child, off, ext)
-            break
-        if best is None:
-            return None
-        banner_el, banner_off, banner_ext = best
-
-    icon_el = icon_off = icon_ext = None
+def _extract_title_parts_from_group(
+    grp: etree._Element,
+    zf: zipfile.ZipFile,
+    slide_name: str,
+) -> dict[str, Any] | None:
+    """Unpack title banner + heading label + icon from one grpSp on the last design slide."""
+    banner_el = None
+    label_el = None
+    icon_el = None
+    icon_off = icon_ext = None
     icon_bytes = icon_file_ext = None
-    for c in children:
-        tag = local_name(c)
-        if tag not in {"pic", "grpSp"}:
-            continue
-        pref = "p:grpSpPr" if tag == "grpSp" else "p:spPr"
-        c_off, c_ext = off_ext(c, pref)
-        if not c_off or not c_ext:
-            continue
-        if c_off[0] + c_ext[0] / 2 >= slide_width * ICON_ZONE_X_FRACTION:
-            continue
-        if c_ext[0] >= slide_width * ICON_MAX_SIZE_FRACTION or c_ext[1] >= slide_height * ICON_MAX_SIZE_FRACTION:
-            continue
-        if not _rects_overlap_y(c_off, c_ext, banner_off, banner_ext):
-            continue
-        icon_el, icon_off, icon_ext = c, c_off, c_ext
-        blip = c.find(".//" + q("a:blip"))
-        rid = blip.get("{%s}embed" % R) if blip is not None else None
-        if rid:
-            resolved = _resolve_image_bytes(zf, sn, rid)
-            if resolved:
-                icon_bytes, icon_file_ext = resolved
-        break
+
+    for inner in grp:
+        tag = local_name(inner)
+        if tag == "sp":
+            geom = prst_geom(inner)
+            text = text_of(inner) or ""
+            if geom in {"roundRect", "round2SameRect"} and banner_el is None:
+                banner_el = inner
+            if _TYPE_HEADING_RE.search(text):
+                label_el = inner
+        elif tag == "pic" and icon_el is None:
+            icon_el = inner
+            icon_off, icon_ext = off_ext(inner, "p:spPr")
+            blip = inner.find(".//" + q("a:blip"))
+            rid = blip.get("{%s}embed" % R) if blip is not None else None
+            if rid:
+                resolved = _resolve_image_bytes(zf, slide_name, rid)
+                if resolved:
+                    icon_bytes, icon_file_ext = resolved
+
+    if banner_el is None or label_el is None:
+        return None
 
     label_is_separate = banner_el is not label_el
     return {
@@ -245,6 +217,163 @@ def _scan_title_banner_on_last_slide(zf, sn, slide_width, slide_height):
         "title_icon_image_bytes": icon_bytes,
         "title_icon_image_ext": icon_file_ext,
     }
+
+
+def _extract_question_parts_from_group(
+    grp: etree._Element,
+    theme_colors: dict[str, str],
+) -> dict[str, Any] | None:
+    """Unpack question pill bar + 'Question' label from one grpSp on the MCQ design slide."""
+    pill_el = None
+    label_el = None
+
+    for inner in grp:
+        if local_name(inner) != "sp":
+            continue
+        geom = prst_geom(inner)
+        text = (text_of(inner) or "").strip()
+        if geom in {"roundRect", "round2SameRect"} and pill_el is None:
+            _, ext = off_ext(inner, "p:spPr")
+            if in_range(ext, HEADING_CX, HEADING_CY):
+                pill_el = inner
+        if _QUESTION_LABEL_RE.match(text):
+            label_el = inner
+
+    if pill_el is None or label_el is None:
+        return None
+
+    label_is_separate = pill_el is not label_el
+    fill = _fill_hex_of(pill_el, theme_colors)
+    text_color = _first_run_color(label_el, theme_colors)
+    return {
+        "question_pill_el": copy.deepcopy(pill_el),
+        "question_pill_label_el": copy.deepcopy(label_el) if label_is_separate else None,
+        "question_pill_fill": fill,
+        "question_pill_text_color": text_color,
+    }
+
+
+def _group_is_question_pill(grp: etree._Element) -> bool:
+    for inner in grp:
+        if local_name(inner) != "sp":
+            continue
+        if _QUESTION_LABEL_RE.match((text_of(inner) or "").strip()):
+            return True
+    return False
+
+
+def _extract_option_parts_from_group(
+    grp: etree._Element,
+    theme_colors: dict[str, str],
+) -> dict[str, Any] | None:
+    """Unpack option pill + label from one grpSp on the MCQ design slide."""
+    inner_sps = [c for c in grp if local_name(c) == "sp"]
+    pill_el = find_option_pill_el(inner_sps)
+    label_el = find_option_label_el(inner_sps, pill_el)
+    if pill_el is None or label_el is None:
+        return None
+
+    raw_label = (text_of(label_el) or "").strip()
+    label_key = parse_option_label(raw_label)
+    if label_key is None:
+        return None
+
+    fill = _fill_hex_of(pill_el, theme_colors)
+    if not fill:
+        return None
+
+    off, _ = off_ext(grp, "p:grpSpPr")
+
+    return {
+        "option_key": label_key,
+        "raw_label": raw_label,
+        "top": int(off[1]) if off else 0,
+        "option_fill": fill,
+        "option_text_color": _first_run_color(label_el, theme_colors),
+        "option_pill_group_el": copy.deepcopy(grp),
+    }
+
+
+def _scan_options_on_mcq_slide(
+    zf: zipfile.ZipFile,
+    slide_name: str,
+    theme_colors: dict[str, str],
+) -> dict[str, Any] | None:
+    """Find grouped option pills (ellipse or roundRect + A/B/1/ii label) on the MCQ design slide."""
+    root = etree.fromstring(zf.read(slide_name))
+    spTree = root.find(".//" + q("p:spTree"))
+    if spTree is None:
+        return None
+
+    option_fill: dict[str, str] = {}
+    option_text_color = None
+    option_group_el = None
+    label_samples: list[tuple[int, str]] = []
+
+    for child in spTree:
+        if local_name(child) != "grpSp":
+            continue
+        if _group_is_question_pill(child):
+            continue
+        found = _extract_option_parts_from_group(child, theme_colors)
+        if found is None:
+            continue
+        option_fill.setdefault(found["option_key"], found["option_fill"])
+        option_text_color = option_text_color or found.get("option_text_color")
+        if option_group_el is None:
+            option_group_el = found["option_pill_group_el"]
+        label_samples.append((found.get("top", 0), found.get("raw_label", "")))
+
+    if option_group_el is None:
+        return None
+
+    label_samples.sort(key=lambda item: item[0])
+    option_labels = option_labels_from_template_samples([raw for _, raw in label_samples])
+
+    return {
+        "option_fill": option_fill,
+        "option_labels": option_labels,
+        "option_text_color": option_text_color,
+        "option_pill_group_el": option_group_el,
+    }
+
+
+def _scan_question_pill_on_mcq_slide(
+    zf: zipfile.ZipFile,
+    slide_name: str,
+    theme_colors: dict[str, str],
+) -> dict[str, Any] | None:
+    """Find grouped question pill (bar + 'Question' label) on the MCQ design slide."""
+    root = etree.fromstring(zf.read(slide_name))
+    spTree = root.find(".//" + q("p:spTree"))
+    if spTree is None:
+        return None
+
+    for child in spTree:
+        if local_name(child) != "grpSp":
+            continue
+        found = _extract_question_parts_from_group(child, theme_colors)
+        if found is not None:
+            return found
+    return None
+
+
+def _scan_title_banner_on_last_slide(zf, sn, slide_width, slide_height):
+    """Find grouped title block (banner + heading label + icon) on the last template slide."""
+    root = etree.fromstring(zf.read(sn))
+    spTree = root.find(".//" + q("p:spTree"))
+    if spTree is None:
+        return None
+
+    for child in spTree:
+        if local_name(child) != "grpSp":
+            continue
+        if _is_design_notes_group(child):
+            continue
+        found = _extract_title_parts_from_group(child, zf, sn)
+        if found is not None:
+            return found
+    return None
 
 
 def scan_template(
@@ -286,6 +415,7 @@ def scan_template(
     )
     # take out the last two slides from all as we decied to do these to prevent large slide scans last two have enough data to need
     design_slide_names = _design_slide_names(slide_names)
+    mcq_slide_name = slide_names[resolve_slide_index(MCQ_DESIGN_SLIDE_INDEX, len(slide_names))] if slide_names else None
     title_slide_name = slide_names[resolve_slide_index(TITLE_DESIGN_SLIDE_INDEX, len(slide_names))] if slide_names else None
 
     # ------------------------------------------------------------------
@@ -321,44 +451,8 @@ def scan_template(
                 off, ext = off_ext(child, "p:spPr")
                 text = text_of(child)
 
-                # MCQ question pill: wide green rounded rectangle near top.
-                # We match by SIZE (HEADING_CX/CY), not by the word "Question".
-                if geom == "roundRect" and in_range(ext, HEADING_CX, HEADING_CY) and question_pill_el is None:
-                    fill = _fill_hex_of(child, theme_colors)
-                    if fill:
-                        question_pill_fill = fill
-                        # Deep-copy XML so output slides can clone this exact shape.
-                        question_pill_el = copy.deepcopy(child)
-                        pill_text = text_of(child)
-                        if pill_text:
-                            # Text is inside the pill itself → read color from pill.
-                            question_pill_text_color = _first_run_color(child, theme_colors)
-                        else:
-                            # Text is in a separate shape right after the pill (common layout).
-                            nxt = children[i + 1] if i + 1 < len(children) else None
-                            if nxt is not None and local_name(nxt) == "sp" and text_of(nxt):
-                                question_pill_text_color = _first_run_color(nxt, theme_colors)
-                                question_pill_label_el = copy.deepcopy(nxt)
-
-                # MCQ option pill: small circle (ellipse) for A/B/C/D answers.
-                elif geom == "ellipse" and in_range(ext, OPTION_CX, OPTION_CY):
-                    fill = _fill_hex_of(child, theme_colors)
-                    # Option letter (A, B, …) is usually in the next shape, not inside circle.
-                    nxt = children[i + 1] if i + 1 < len(children) else None
-                    label_text = text_of(nxt) if nxt is not None and local_name(nxt) == "sp" else ""
-                    letter = label_text.strip()[:1].upper()
-                    if fill and letter.isalpha():
-                        option_fill.setdefault(letter, fill)  # e.g. {"A": "015500"}
-                    # Save first matching circle + label as template to clone later.
-                    if fill and option_standalone_pill_el is None:
-                        option_standalone_pill_el = copy.deepcopy(child)
-                        if nxt is not None and local_name(nxt) == "sp":
-                            option_standalone_label_el = copy.deepcopy(nxt)
-                            c = _first_run_color(nxt, theme_colors)
-                            option_text_color = option_text_color or c
-
                 # Body paragraph color: any other text shape with meaningful text.
-                elif geom not in (None, "roundRect", "ellipse") and text and len(text) > 3 and body_text_color is None:
+                if geom not in (None, "roundRect", "ellipse") and text and len(text) > 3 and body_text_color is None:
                     c = _first_run_color(child, theme_colors)
                     if c:
                         body_text_color = c
@@ -366,24 +460,6 @@ def scan_template(
                     c = _first_run_color(child, theme_colors)
                     if c:
                         body_text_color = c
-
-            # --- p:grpSp = pill + label grouped as one unit -----------------
-            elif tag == "grpSp":
-                inner_sps = [c for c in child if local_name(c) == "sp"]
-                pill_el = next((c for c in inner_sps if prst_geom(c) == "ellipse"), None)
-                label_el = next((c for c in inner_sps if c is not pill_el and text_of(c)), None)
-                if pill_el is not None and label_el is not None:
-                    _, pill_ext = off_ext(pill_el, "p:spPr")
-                    if in_range(pill_ext, OPTION_CX, OPTION_CY):
-                        fill = _fill_hex_of(pill_el, theme_colors)
-                        letter = text_of(label_el).strip()[:1].upper()
-                        if fill and letter.isalpha():
-                            option_fill.setdefault(letter, fill)
-                        # Clone whole group when options are grouped, not separate shapes.
-                        if fill and option_group_el is None:
-                            option_group_el = copy.deepcopy(child)
-                            c = _first_run_color(label_el, theme_colors)
-                            option_text_color = option_text_color or c
 
             # --- p:graphicFrame = table -------------------------------------
             elif tag == "graphicFrame":
@@ -416,6 +492,25 @@ def scan_template(
                                 if c:
                                     table_body_text_color = c
 
+    if mcq_slide_name:
+        found = _scan_question_pill_on_mcq_slide(zf, mcq_slide_name, theme_colors)
+        if found:
+            question_pill_el = found["question_pill_el"]
+            question_pill_label_el = found["question_pill_label_el"]
+            if found.get("question_pill_fill"):
+                question_pill_fill = found["question_pill_fill"]
+            if found.get("question_pill_text_color"):
+                question_pill_text_color = found["question_pill_text_color"]
+
+        options = _scan_options_on_mcq_slide(zf, mcq_slide_name, theme_colors)
+        option_labels: list[str] = []
+        if options:
+            option_fill.update(options["option_fill"])
+            option_group_el = options["option_pill_group_el"]
+            option_labels = options.get("option_labels") or []
+            if options.get("option_text_color"):
+                option_text_color = options["option_text_color"]
+
     if title_slide_name:
         found = _scan_title_banner_on_last_slide(
             zf, title_slide_name, slide_width, slide_height,
@@ -439,6 +534,7 @@ def scan_template(
         "question_pill_fill": question_pill_fill or DEFAULT_QUESTION_PILL_FILL,
         "question_pill_text_color": question_pill_text_color or DEFAULT_QUESTION_PILL_TEXT_COLOR,
         "option_fill": option_fill or {"shared": question_pill_fill or DEFAULT_QUESTION_PILL_FILL},
+        "option_labels": option_labels or build_template_option_labels("upper_alpha"),
         "option_text_color": option_text_color or DEFAULT_OPTION_TEXT_COLOR,
         "table_header_fill": table_header_fill or question_pill_fill or DEFAULT_TABLE_HEADER_FILL,
         "table_border_color": table_border_color or DEFAULT_TABLE_BORDER_COLOR,
