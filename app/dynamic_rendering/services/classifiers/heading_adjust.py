@@ -8,6 +8,7 @@ from lxml import etree
 
 from app.dynamic_rendering.constants.shape_geometry import LABEL_PAIRING_TOLERANCE, PILL_CONTENT_GAP
 from app.dynamic_rendering.domain.models.design_spec import DesignSpec
+from app.dynamic_rendering.services.format_layout.shared.title_heading_layout import fixed_title_heading_geometry
 from app.dynamic_rendering.services.text.heading_detector import extract_text_from_slide
 from app.dynamic_rendering.services.text.title_heading_fit import fit_title_heading
 from app.dynamic_rendering.utils.xml.helpers import local_name, off_ext, parse_emu, q, text_of
@@ -122,14 +123,11 @@ def apply_detected_heading(
     baseline_pt = dspec.title_heading_font_size_pt
 
     if not any(it.get("kind") == "title_heading" for it in items):
-        banner_off, banner_ext = off_ext(dspec.title_banner_el, "p:spPr")
-        label_off, label_ext = banner_off, banner_ext
-        if dspec.title_label_el is not None:
-            lo, le = off_ext(dspec.title_label_el, "p:spPr")
-            if lo and le:
-                label_off, label_ext = lo, le
-        label_off = label_off or banner_off
-        label_ext = label_ext or banner_ext
+        geo = fixed_title_heading_geometry()
+        banner_off = geo["banner_off"]
+        banner_ext = geo["banner_ext"]
+        label_off = geo["label_off"]
+        label_ext = geo["label_ext"]
         fit = fit_title_heading(
             text=heading["text"],
             banner_off=banner_off,
@@ -150,6 +148,8 @@ def apply_detected_heading(
                 "label_ext": fit.label_ext,
                 "label_font_size_pt": fit.label_font_size_pt,
                 "wrap_mode": fit.wrap_mode,
+                "icon_off": geo["icon_off"],
+                "icon_ext": geo["icon_ext"],
                 "_orig_off": banner_off,
                 "_orig_ext": banner_ext,
                 "_orig_label_off": label_off,

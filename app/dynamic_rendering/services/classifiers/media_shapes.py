@@ -15,6 +15,7 @@ from app.dynamic_rendering.constants.shape_geometry import (
 from app.dynamic_rendering.constants.xml_namespaces import R
 from app.dynamic_rendering.domain.models.design_spec import DesignSpec
 from app.dynamic_rendering.services.classifiers.heading_adjust import find_paired_label
+from app.dynamic_rendering.services.format_layout.shared.title_heading_layout import fixed_title_heading_geometry
 from app.dynamic_rendering.services.text.title_heading_fit import fit_title_heading
 from app.dynamic_rendering.utils.xml.helpers import local_name, off_ext, prst_geom, q, text_of
 
@@ -60,30 +61,35 @@ def classify_title_banner(
         claimed.add(id(c))
 
     label_text_val = text_of(label) if label is not None else ""
-    _label_off = label_off or off
-    _label_ext = label_ext or ext
+    geo = fixed_title_heading_geometry()
+    banner_off = geo["banner_off"]
+    banner_ext = geo["banner_ext"]
+    label_off = geo["label_off"]
+    label_ext = geo["label_ext"]
     fit = fit_title_heading(
         text=label_text_val,
-        banner_off=off,
-        banner_ext=ext,
-        label_off=_label_off,
-        label_ext=_label_ext,
+        banner_off=banner_off,
+        banner_ext=banner_ext,
+        label_off=label_off,
+        label_ext=label_ext,
         baseline_font_size_pt=dspec.title_heading_font_size_pt,
         slide_width=slide_width,
     )
     return {
         "kind": "title_heading",
-        "off": off,
+        "off": banner_off,
         "ext": fit.banner_ext,
         "label_text": label_text_val,
-        "label_off": _label_off,
+        "label_off": label_off,
         "label_ext": fit.label_ext,
         "label_font_size_pt": fit.label_font_size_pt,
         "wrap_mode": fit.wrap_mode,
-        "_orig_off": off,
-        "_orig_ext": ext,
-        "_orig_label_off": _label_off,
-        "_orig_label_ext": _label_ext,
+        "icon_off": geo["icon_off"],
+        "icon_ext": geo["icon_ext"],
+        "_orig_off": banner_off,
+        "_orig_ext": banner_ext,
+        "_orig_label_off": label_off,
+        "_orig_label_ext": label_ext,
     }
 
 

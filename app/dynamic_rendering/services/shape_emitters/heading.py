@@ -10,9 +10,11 @@ from lxml import etree
 from app.dynamic_rendering.constants.template_design import FIXED_HEADING_FONT_PT, QUESTION_LABEL_FONT_PT
 from app.dynamic_rendering.constants.xml_namespaces import R
 from app.dynamic_rendering.domain.models.design_spec import DesignSpec
+from app.dynamic_rendering.services.format_layout.shared.title_heading_layout import fixed_title_heading_geometry
 from app.dynamic_rendering.utils.xml.helpers import local_name, q
 from app.dynamic_rendering.utils.xml.shape_mutators import (
     clone_and_place,
+    enable_shrink_to_fit,
     enable_text_wrapping,
     place_group,
     renumber_ids,
@@ -61,6 +63,11 @@ def emit_title_heading(
 ) -> None:
     """Topic-title banner: template banner + icon, with input title text."""
     wrap_mode = item.get("wrap_mode", False)
+    geo = fixed_title_heading_geometry()
+    label_off = item.get("label_off") or geo["label_off"]
+    label_ext = item.get("label_ext") or geo["label_ext"]
+    icon_off = item.get("icon_off") or geo["icon_off"]
+    icon_ext = item.get("icon_ext") or geo["icon_ext"]
 
     if dspec.title_banner_el is not None:
         banner = clone_and_place(dspec.title_banner_el, item["off"], item["ext"])
@@ -80,7 +87,7 @@ def emit_title_heading(
         spTree.append(banner)
 
     if dspec.title_label_el is not None:
-        label = clone_and_place(dspec.title_label_el, item["label_off"], item["label_ext"])
+        label = clone_and_place(dspec.title_label_el, label_off, label_ext)
         set_text(label, item["label_text"])
         set_all_run_colors(label, dspec.question_pill_text_color)
         if dspec.question_pill_font:
@@ -91,12 +98,13 @@ def emit_title_heading(
             set_all_run_sizes(label, FIXED_HEADING_FONT_PT)
         if wrap_mode:
             enable_text_wrapping(label)
+            enable_shrink_to_fit(label)
+        elif item.get("label_font_size_pt") is not None:
+            enable_shrink_to_fit(label)
         renumber_ids(label, id_state)
         spTree.append(label)
 
     if dspec.title_icon_el is not None:
-        icon_off = item.get("icon_off") or dspec.title_icon_off
-        icon_ext = item.get("icon_ext") or dspec.title_icon_ext
         if local_name(dspec.title_icon_el) == "grpSp":
             clone = copy.deepcopy(dspec.title_icon_el)
             place_group(clone, icon_off, icon_ext)
