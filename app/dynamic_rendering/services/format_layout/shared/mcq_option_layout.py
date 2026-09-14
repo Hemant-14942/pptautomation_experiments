@@ -3,31 +3,33 @@
 from __future__ import annotations
 
 from app.dynamic_rendering.services.format_layout.formatters.qpill_qtext_mcq.constants import (
-    MCQ_OPTIONS,
-    OPTION_A_LABEL,
     mcq_options_for,
 )
 
-ROW_GAP = MCQ_OPTIONS[1]["pill"]["y"] - MCQ_OPTIONS[0]["pill"]["y"]
-TEXT_ROW_GAP = MCQ_OPTIONS[1]["text_box"]["y"] - MCQ_OPTIONS[0]["text_box"]["y"]
-_LABEL_Y_OFFSET = OPTION_A_LABEL["y"] - MCQ_OPTIONS[0]["pill"]["y"]
-_LABEL_X = OPTION_A_LABEL["x"]
-_LABEL_WIDTH = OPTION_A_LABEL["width"]
-_LABEL_HEIGHT = OPTION_A_LABEL["height"]
 
+def option_layout_from_options(option_idx: int, options: list[dict]) -> dict:
+    """Return pill, label_box, text_box, and label letter from a constants MCQ_OPTIONS list."""
+    if not options:
+        raise ValueError("options must not be empty")
 
-def _label_box_for_pill_y(pill_y: int) -> dict[str, int]:
-    return {
-        "x": _LABEL_X,
-        "y": pill_y + _LABEL_Y_OFFSET,
-        "width": _LABEL_WIDTH,
-        "height": _LABEL_HEIGHT,
-    }
+    row_gap = options[1]["pill"]["y"] - options[0]["pill"]["y"]
+    text_row_gap = options[1]["text_box"]["y"] - options[0]["text_box"]["y"]
+    first_label_box = options[0].get("label_box")
+    label_x = first_label_box["x"] if first_label_box else options[0]["pill"]["x"]
+    label_width = first_label_box["width"] if first_label_box else options[0]["pill"]["width"]
+    label_height = first_label_box["height"] if first_label_box else options[0]["pill"]["height"]
+    label_y_offset = (
+        first_label_box["y"] - options[0]["pill"]["y"] if first_label_box else 0
+    )
 
+    def _label_box_for_pill_y(pill_y: int) -> dict[str, int]:
+        return {
+            "x": label_x,
+            "y": pill_y + label_y_offset,
+            "width": label_width,
+            "height": label_height,
+        }
 
-def option_layout_for(option_idx: int, dspec=None) -> dict:
-    """Return pill, label_box, text_box, and label letter for a layout row index."""
-    options = mcq_options_for(dspec)
     if option_idx < len(options):
         opt = dict(options[option_idx])
         if opt.get("label_box") is None:
@@ -36,8 +38,8 @@ def option_layout_for(option_idx: int, dspec=None) -> dict:
 
     base = options[3]
     extra = option_idx - 3
-    pill_y = base["pill"]["y"] + extra * ROW_GAP
-    text_y = base["text_box"]["y"] + extra * TEXT_ROW_GAP
+    pill_y = base["pill"]["y"] + extra * row_gap
+    text_y = base["text_box"]["y"] + extra * text_row_gap
     pill = {**base["pill"], "y": pill_y}
     text_box = {**base["text_box"], "y": text_y}
     letter = chr(ord("A") + option_idx)
@@ -47,3 +49,8 @@ def option_layout_for(option_idx: int, dspec=None) -> dict:
         "label_box": _label_box_for_pill_y(pill_y),
         "text_box": text_box,
     }
+
+
+def option_layout_for(option_idx: int, dspec=None) -> dict:
+    """Return layout for qpill_qtext_mcq option rows (defence-aware)."""
+    return option_layout_from_options(option_idx, mcq_options_for(dspec))

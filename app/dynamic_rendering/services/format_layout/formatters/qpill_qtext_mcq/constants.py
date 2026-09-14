@@ -1,5 +1,8 @@
 """Fixed layout for question pill + text + four MCQ options."""
 
+
+PILL_TO_TEXT_GAP_EMU = 220_000
+
 QUESTION_PILL = {
     "x": -1_864_528,
     "y": 681_774,
@@ -16,7 +19,7 @@ QUESTION_LABEL = {
 
 QUESTION_TEXT = {
     "x": 1_104_806,
-    "y": 2_396_709,
+    "y": QUESTION_PILL["y"] + QUESTION_PILL["height"] + PILL_TO_TEXT_GAP_EMU,
     "width": 34_747_200,
     "height": 4_389_120,
 }

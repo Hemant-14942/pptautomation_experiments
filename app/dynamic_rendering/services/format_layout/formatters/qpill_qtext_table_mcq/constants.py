@@ -43,12 +43,14 @@ QUESTION_LABEL = {
 # SECTION 2: QUESTION TEXT BOX (below pill)
 # ============================================================================
 
+PILL_TO_TEXT_GAP_EMU = 220_000
+
 # Text fit order (question + answer boxes):
 #   1. wrap="square"  — long lines break to next row (no spill off right edge)
 #   2. normAutofit      — if wrapped text still too tall, shrink font to fit
 QUESTION_TEXT = {
     "x": 1_104_806,      # 1.208 inches
-    "y": 2_396_709,      # 2.621 inches
+    "y": QUESTION_PILL["y"] + QUESTION_PILL["height"] + PILL_TO_TEXT_GAP_EMU,
     "width": 34_747_200, # 38.0 inches
     "height": 2_560_320, # 2.8 inches (shorter than qpill_qtext_mcq — table below)
 }
@@ -137,3 +139,47 @@ MCQ_OPTIONS = [
     {"label": "C", "pill": OPTION_C_PILL, "label_box": None, "text_box": OPTION_C_TEXT},
     {"label": "D", "pill": OPTION_D_PILL, "label_box": None, "text_box": OPTION_D_TEXT},
 ]
+
+
+def _shift_y(y: int, dspec=None) -> int:
+    if dspec is not None and dspec.has_top_banner():
+        return dspec.y_below_banner(y)
+    return y
+
+
+def _box_for(box: dict[str, int], dspec=None) -> dict[str, int]:
+    return {**box, "y": _shift_y(box["y"], dspec)}
+
+
+def question_text_for(dspec=None) -> dict[str, int]:
+    pill_y = _shift_y(QUESTION_PILL["y"], dspec)
+    y = pill_y + QUESTION_PILL["height"] + PILL_TO_TEXT_GAP_EMU
+    return {
+        "x": QUESTION_TEXT["x"],
+        "y": y,
+        "width": QUESTION_TEXT["width"],
+        "height": QUESTION_TEXT["height"],
+    }
+
+
+def table_box_for(dspec=None) -> dict[str, int]:
+    return {
+        "x": TABLE_BOX["x"],
+        "y": _shift_y(TABLE_BOX["y"], dspec),
+        "width": TABLE_BOX["width"],
+        "height": TABLE_BOX["height"],
+    }
+
+
+def _option_row_for(row: dict, dspec=None) -> dict:
+    return {
+        "label": row["label"],
+        "pill": _box_for(row["pill"], dspec),
+        "label_box": _box_for(row["label_box"], dspec) if row["label_box"] is not None else None,
+        "text_box": _box_for(row["text_box"], dspec),
+    }
+
+
+def mcq_options_for(dspec=None) -> list[dict]:
+    """MCQ option rows A–D below the table (defence-aware y shift)."""
+    return [_option_row_for(row, dspec) for row in MCQ_OPTIONS]
