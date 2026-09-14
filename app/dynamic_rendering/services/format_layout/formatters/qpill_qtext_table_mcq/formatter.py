@@ -10,11 +10,7 @@ from app.dynamic_rendering.services.format_layout.formatters.qpill_qtext_table_m
     TABLE_BOX,
 )
 from app.dynamic_rendering.services.format_layout.shared.mcq_option_layout import option_layout_for
-from app.dynamic_rendering.services.format_layout.shared.table_utils import (
-    clone_and_place_table,
-    get_table_total_height,
-    get_table_width,
-)
+from app.dynamic_rendering.services.format_layout.shared.table_utils import format_table_in_box
 from app.dynamic_rendering.utils.xml.helpers import q
 from app.dynamic_rendering.utils.xml.shape_mutators import (
     clone_and_place,
@@ -62,17 +58,7 @@ def format_question_text(text_el: etree._Element) -> etree._Element:
 
 
 def format_table(graphic_frame_el: etree._Element) -> etree._Element:
-    table_height = get_table_total_height(graphic_frame_el)
-    table_width = get_table_width(graphic_frame_el)
-    if table_height <= TABLE_BOX["height"]:
-        y = TABLE_BOX["y"] + (TABLE_BOX["height"] - table_height) // 2
-    else:
-        y = TABLE_BOX["y"]
-    if table_width <= TABLE_BOX["width"]:
-        x = TABLE_BOX["x"] + (TABLE_BOX["width"] - table_width) // 2
-    else:
-        x = TABLE_BOX["x"]
-    return clone_and_place_table(graphic_frame_el, (x, y))
+    return format_table_in_box(graphic_frame_el, TABLE_BOX)
 
 
 def format_mcq_option_pill(option_idx: int, pill_el: etree._Element) -> None | etree._Element:
