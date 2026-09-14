@@ -40,4 +40,5 @@ def spec_from_tokens_and_scan(tokens: dict[str, Any], source: str, scan: dict[st
         title_icon_image_bytes=scan["title_icon_image_bytes"],
         title_icon_image_ext=scan["title_icon_image_ext"],
         title_heading_font_size_pt=FIXED_HEADING_FONT_PT,
+        top_banner_reserved_emu=scan.get("top_banner_reserved_emu", 0),
     )

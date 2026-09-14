@@ -9,15 +9,15 @@ from app.dynamic_rendering.services.format_layout.shared.slide_tree import repla
 from app.dynamic_rendering.services.format_layout.shared.title_heading_slide import format_title_heading_shapes
 
 
-def format_title_image_only_slide(slide: Slide, prs: Presentation | None = None) -> bool:
+def format_title_image_only_slide(slide: Slide, prs: Presentation | None = None, dspec=None) -> bool:
     shapes = find_shapes(slide)
     if shapes is None:
         return False
 
     slide_width = prs.slide_width if prs is not None else slide.part.presentation.slide_width
-    format_title_heading_shapes(slide, slide_width)
+    format_title_heading_shapes(slide, slide_width, dspec)
 
-    clones = format_images(shapes["picture_els"], shapes["image_sizes"])
+    clones = format_images(shapes["picture_els"], shapes["image_sizes"], dspec=dspec)
     sp_tree = slide.shapes._spTree
     for orig_el, clone_el in zip(shapes["picture_els"], clones):
         replace_shape(sp_tree, orig_el, clone_el)

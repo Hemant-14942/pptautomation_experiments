@@ -8,11 +8,11 @@ from app.dynamic_rendering.services.format_layout.formatters.body_only.shapes im
 from app.dynamic_rendering.services.format_layout.shared.slide_tree import replace_shape
 
 
-def format_body_only_slide(slide: Slide, prs: Presentation | None = None) -> bool:
+def format_body_only_slide(slide: Slide, prs: Presentation | None = None, dspec=None) -> bool:
     shapes = find_shapes(slide)
     if shapes is None:
         return False
 
     sp_tree = slide.shapes._spTree
-    replace_shape(sp_tree, shapes["body_el"], format_body_text(shapes["body_el"]))
+    replace_shape(sp_tree, shapes["body_el"], format_body_text(shapes["body_el"], dspec))
     return True

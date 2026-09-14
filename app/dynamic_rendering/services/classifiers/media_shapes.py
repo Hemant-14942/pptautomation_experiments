@@ -61,7 +61,7 @@ def classify_title_banner(
         claimed.add(id(c))
 
     label_text_val = text_of(label) if label is not None else ""
-    geo = fixed_title_heading_geometry()
+    geo = fixed_title_heading_geometry(dspec)
     banner_off = geo["banner_off"]
     banner_ext = geo["banner_ext"]
     label_off = geo["label_off"]

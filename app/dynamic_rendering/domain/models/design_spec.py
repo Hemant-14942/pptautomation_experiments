@@ -57,6 +57,28 @@ class DesignSpec:
     title_icon_image_bytes: bytes | None = None
     title_icon_image_ext: str | None = None
     title_heading_font_size_pt: float = FIXED_HEADING_FONT_PT
+    top_banner_reserved_emu: int = 0
+
+    def has_top_banner(self) -> bool:
+        """True if the template reserves banner space at the top of every slide.
+
+        Convenience accessor for `top_banner_reserved_emu > 0`. Use this in
+        branch conditions where you want a readable name; use the field
+        directly when you need the numeric value.
+        """
+        return self.top_banner_reserved_emu > 0
+
+    def y_below_banner(self, y: int) -> int:
+        """Return `y` shifted down past any reserved banner height.
+
+        When `top_banner_reserved_emu` is 0 (standard template), returns
+        `y` unchanged. Otherwise returns `y + top_banner_reserved_emu`.
+
+        Use this anywhere a shape's top-y coordinate is being set so defence
+        variants automatically clear the master banner without scattering
+        the banner-height constant through every emitter.
+        """
+        return y + self.top_banner_reserved_emu
 
     def option_color_for(self, letter: str) -> str:
         """

@@ -5,6 +5,7 @@ from __future__ import annotations
 from lxml import etree
 
 from app.dynamic_rendering.utils.xml.shape_mutators import clone_and_place, enable_text_wrapping
+from app.dynamic_rendering.constants.shape_geometry import DEFENCE_BANNER_HEIGHT_EMU
 
 # Extracted from standard-red title design slide grpSp.
 TITLE_BANNER = {
@@ -29,14 +30,18 @@ TITLE_LABEL = {
 }
 
 
-def box_off_ext(box: dict[str, int]) -> tuple[tuple[int, int], tuple[int, int]]:
-    return (box["x"], box["y"]), (box["width"], box["height"])
 
 
-def fixed_title_heading_geometry() -> dict[str, tuple[int, int]]:
-    banner_off, banner_ext = box_off_ext(TITLE_BANNER)
-    label_off, label_ext = box_off_ext(TITLE_LABEL)
-    icon_off, icon_ext = box_off_ext(TITLE_ICON)
+def box_off_ext( box: dict[str, int],dspec=None,) -> tuple[tuple[int, int], tuple[int, int]]:
+    y = box["y"]
+    if dspec is not None and dspec.has_top_banner():
+        y = y + DEFENCE_BANNER_HEIGHT_EMU
+    return (box["x"], y), (box["width"], box["height"])
+
+def fixed_title_heading_geometry(dspec=None) -> dict[str, tuple[int, int]]:
+    banner_off, banner_ext = box_off_ext(TITLE_BANNER, dspec)
+    label_off, label_ext = box_off_ext(TITLE_LABEL, dspec)
+    icon_off, icon_ext = box_off_ext(TITLE_ICON, dspec)
     return {
         "banner_off": banner_off,
         "banner_ext": banner_ext,
@@ -47,18 +52,18 @@ def fixed_title_heading_geometry() -> dict[str, tuple[int, int]]:
     }
 
 
-def format_title_banner(el: etree._Element) -> etree._Element:
-    off, ext = box_off_ext(TITLE_BANNER)
+def format_title_banner(el: etree._Element,dspec=None) -> etree._Element:
+    off, ext = box_off_ext(TITLE_BANNER, dspec)
     return clone_and_place(el, off, ext)
 
 
-def format_title_icon(el: etree._Element) -> etree._Element:
-    off, ext = box_off_ext(TITLE_ICON)
+def format_title_icon(el: etree._Element,dspec=None) -> etree._Element:
+    off, ext = box_off_ext(TITLE_ICON, dspec)
     return clone_and_place(el, off, ext)
 
 
-def format_title_label(el: etree._Element) -> etree._Element:
-    off, ext = box_off_ext(TITLE_LABEL)
+def format_title_label(el: etree._Element,dspec=None) -> etree._Element:
+    off, ext = box_off_ext(TITLE_LABEL, dspec)
     clone = clone_and_place(el, off, ext)
     enable_text_wrapping(clone)
     return clone

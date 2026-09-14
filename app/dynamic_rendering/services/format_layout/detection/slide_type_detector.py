@@ -25,6 +25,7 @@ SLIDE_TYPE_TABLE_ONLY = "table_only"
 SLIDE_TYPE_QUESTION_QTEXT_MCQ = "question_qtext_mcq"
 SLIDE_TYPE_QPILL_QTEXT_TABLE_MCQ = "qpill_qtext_table_mcq"
 SLIDE_TYPE_QPILL_QTEXT_ONLY = "qpill_qtext_only"
+SLIDE_TYPE_QPILL_ONLY = "qpill_only"
 SLIDE_TYPE_QPILL_QTEXT_IMAGE_MCQ = "qpill_qtext_image_mcq"
 
 IMAGE_Y_THRESHOLD_EMU = 1_828_800  # 2.0 inches
@@ -121,7 +122,7 @@ def has_mcq_structure(slide: Slide) -> bool:
     return has_question_pill(slide) and count_input_mcq_options(slide) >= 1
 
 
-def qualifies_for_qpill_qtext_only_slide(
+def _qualifies_for_qpill_base_slide(
     slide: Slide, prs: PresentationType, signature: dict[str, Any]
 ) -> bool:
     if extract_text_from_slide(slide, 0, prs).get("heading") is not None:
@@ -134,7 +135,19 @@ def qualifies_for_qpill_qtext_only_slide(
         return False
     if count_real_images(slide) > 0:
         return False
-    return has_question_text_below_pill(slide)
+    return True
+
+
+def qualifies_for_qpill_qtext_only_slide(
+    slide: Slide, prs: PresentationType, signature: dict[str, Any]
+) -> bool:
+    return _qualifies_for_qpill_base_slide(slide, prs, signature) and has_question_text_below_pill(slide)
+
+
+def qualifies_for_qpill_only_slide(
+    slide: Slide, prs: PresentationType, signature: dict[str, Any]
+) -> bool:
+    return _qualifies_for_qpill_base_slide(slide, prs, signature) and not has_question_text_below_pill(slide)
 
 
 def detect_slide_type(
@@ -154,6 +167,9 @@ def detect_slide_type(
 
     if qualifies_for_qpill_qtext_only_slide(slide, prs, signature):
         return SLIDE_TYPE_QPILL_QTEXT_ONLY
+
+    if qualifies_for_qpill_only_slide(slide, prs, signature):
+        return SLIDE_TYPE_QPILL_ONLY
 
     heading = extract_text_from_slide(slide, 0, prs).get("heading")
     has_heading = heading is not None

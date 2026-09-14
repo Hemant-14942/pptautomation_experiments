@@ -36,6 +36,9 @@ from app.dynamic_rendering.constants.presentation_defaults import (
 from app.dynamic_rendering.constants.shape_geometry import (
     HEADING_CX,
     HEADING_CY,
+    DEFENCE_BANNER_HEIGHT_EMU,
+    DEFENCE_MARKER_SLIDE_INDEX,
+    DEFENCE_MARKER_TEXT,
 )
 from app.dynamic_rendering.services.classifiers.option_label import (
     build_template_option_labels,
@@ -73,6 +76,28 @@ def _design_slide_names(slide_names: list[str]) -> list[str]:
         resolve_slide_index(TITLE_DESIGN_SLIDE_INDEX, count),
     })
     return [slide_names[i] for i in indices]
+
+# for detecting is the given ppt is defence one or different one
+def _detect_defence_marker(zf: zipfile.ZipFile, slide_names: list[str]) -> bool:
+    if not slide_names:
+        return False
+
+    marker_idx = resolve_slide_index(DEFENCE_MARKER_SLIDE_INDEX, len(slide_names))
+    marker_slide_name = slide_names[marker_idx]
+
+    if marker_slide_name not in zf.namelist():
+        return False
+
+    root = etree.fromstring(zf.read(marker_slide_name))
+    expected_text = DEFENCE_MARKER_TEXT.strip().lower()
+
+    text_shapes = [
+        text_of(sp).strip().lower()
+        for sp in root.iter(q("p:sp"))
+        if text_of(sp).strip()
+    ]
+
+    return len(text_shapes) == 1 and text_shapes[0] == expected_text
 
 
 def _resolve_color(container: etree._Element | None, theme_colors: dict[str, str]) -> str | None:
@@ -417,6 +442,9 @@ def scan_template(
     design_slide_names = _design_slide_names(slide_names)
     mcq_slide_name = slide_names[resolve_slide_index(MCQ_DESIGN_SLIDE_INDEX, len(slide_names))] if slide_names else None
     title_slide_name = slide_names[resolve_slide_index(TITLE_DESIGN_SLIDE_INDEX, len(slide_names))] if slide_names else None
+    # detect the defence variant template by this
+    is_defence = _detect_defence_marker(zf, slide_names)
+    top_banner_reserved_emu = DEFENCE_BANNER_HEIGHT_EMU if is_defence else 0
 
     # ------------------------------------------------------------------
     # Walk only the 2 design slides (MCQ + title) and read each shape.
@@ -558,4 +586,6 @@ def scan_template(
         "title_icon_ext": title_icon_ext,
         "title_icon_image_bytes": title_icon_image_bytes,
         "title_icon_image_ext": title_icon_image_ext,
+        "is_defence": is_defence,
+        "top_banner_reserved_emu": top_banner_reserved_emu,
     }

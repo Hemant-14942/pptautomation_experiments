@@ -34,9 +34,18 @@ TITLE_HEADING_RIGHT_PADDING_FRACTION = 0.01 # small gap after text inside banner
 TITLE_HEADING_AVG_CHAR_WIDTH_EM = 0.62      # rough guess: how wide each character is
 EMU_PER_PT = 12700                            # convert font points to EMU
 TITLE_HEADING_MIN_FONT_SCALE = 0.6          # shrink font to 60% max, not smaller
-TITLE_HEADING_DEFAULT_FONT_PT = 40.0        # fallback if template has no font size
+TITLE_HEADING_DEFAULT_FONT_PT = 50.0        # fallback if template has no font size
 
 # Gap below title banner before body content starts (used when shifting shapes down).
 # PILL_CONTENT_GAP = 500_000  # ~0.55 inch gap under title banner
 # for fit layout, we don't want any gap below the title banner
 PILL_CONTENT_GAP = 0
+
+# defence ppt constants need all here
+# sits below this Y offset so content does not collide with the master banner.
+DEFENCE_BANNER_HEIGHT_EMU = 2_011_320
+# Positive = 1-based slide number (1 = first slide). Negative = count from end.
+DEFENCE_MARKER_SLIDE_INDEX = 0
+# Marker text set (case-insensitive, exact match after strip). Designer can use
+# any of these in the marker's single text box.
+DEFENCE_MARKER_TEXT = "defence"

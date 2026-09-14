@@ -90,3 +90,33 @@ MCQ_OPTIONS = [
     {"label": "C", "pill": OPTION_C_PILL, "label_box": None, "text_box": OPTION_C_TEXT},
     {"label": "D", "pill": OPTION_D_PILL, "label_box": None, "text_box": OPTION_D_TEXT},
 ]
+
+
+def _shift_y(y: int, dspec=None) -> int:
+    """Shift a top-y coordinate down when the template reserves a defence banner."""
+    if dspec is not None and dspec.has_top_banner():
+        return dspec.y_below_banner(y)
+    return y
+
+
+def _box_for(box: dict[str, int], dspec=None) -> dict[str, int]:
+    """Return a box dict with defence-aware y; x/width/height unchanged."""
+    return {**box, "y": _shift_y(box["y"], dspec)}
+
+
+def question_text_for(dspec=None) -> dict[str, int]:
+    return _box_for(QUESTION_TEXT, dspec)
+
+
+def _option_row_for(row: dict, dspec=None) -> dict:
+    return {
+        "label": row["label"],
+        "pill": _box_for(row["pill"], dspec),
+        "label_box": _box_for(row["label_box"], dspec) if row["label_box"] is not None else None,
+        "text_box": _box_for(row["text_box"], dspec),
+    }
+
+
+def mcq_options_for(dspec=None) -> list[dict]:
+    """MCQ option rows A–D with every shape y shifted on defence templates."""
+    return [_option_row_for(row, dspec) for row in MCQ_OPTIONS]

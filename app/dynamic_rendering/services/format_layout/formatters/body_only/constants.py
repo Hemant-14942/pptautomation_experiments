@@ -36,3 +36,16 @@ BODY_TEXTBOX = {
     "width": SLIDE_WIDTH_EMU - 2 * SIDE_MARGIN_EMU,    # 38" wide
     "height": SLIDE_HEIGHT_EMU - 2 * SIDE_MARGIN_EMU, # 20.5" tall
 }
+
+def body_textbox_for(dspec=None) -> dict:
+    y = SIDE_MARGIN_EMU
+    height = SLIDE_HEIGHT_EMU - 2 * SIDE_MARGIN_EMU
+    if dspec is not None and dspec.has_top_banner():
+        y = dspec.y_below_banner(y)
+        height -= dspec.top_banner_reserved_emu
+    return {
+        "x": SIDE_MARGIN_EMU,
+        "y": y,
+        "width": SLIDE_WIDTH_EMU - 2 * SIDE_MARGIN_EMU,
+        "height": height,
+    }

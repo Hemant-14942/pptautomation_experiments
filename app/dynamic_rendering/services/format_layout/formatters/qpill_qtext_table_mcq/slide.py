@@ -16,7 +16,7 @@ from app.dynamic_rendering.services.format_layout.formatters.qpill_qtext_table_m
 from app.dynamic_rendering.services.format_layout.shared.slide_tree import replace_shape
 
 
-def format_qpill_qtext_table_mcq_slide(slide: Slide, prs: Presentation | None = None) -> bool:
+def format_qpill_qtext_table_mcq_slide(slide: Slide, prs: Presentation | None = None, dspec=None) -> bool:
     shapes = find_shapes(slide)
     if shapes is None:
         return False
@@ -37,6 +37,8 @@ def format_qpill_qtext_table_mcq_slide(slide: Slide, prs: Presentation | None = 
             if label_el is not None and not opt["grouped"]:
                 replace_shape(sp_tree, label_el, format_mcq_option_label(opt_idx, label_el))
 
-        replace_shape(sp_tree, opt["text_el"], format_mcq_answer_text(opt_idx, opt["text_el"]))
+        text_el = opt["text_el"]
+        if text_el is not None:
+            replace_shape(sp_tree, text_el, format_mcq_answer_text(opt_idx, text_el))
 
     return True

@@ -13,8 +13,9 @@ def format_images(
     picture_els: list[etree._Element],
     image_sizes: list[tuple[int, int]],
     layout: str = "balanced",
+    dspec=None,
 ) -> list[etree._Element]:
-    image_boxes = get_title_image_boxes(len(picture_els), layout=layout)
+    image_boxes = get_title_image_boxes(len(picture_els), layout=layout, dspec=dspec)
     clones = []
     for pic_el, (img_w, img_h), box in zip(picture_els, image_sizes, image_boxes):
         fitted = fit_image_to_box(img_w, img_h, box)

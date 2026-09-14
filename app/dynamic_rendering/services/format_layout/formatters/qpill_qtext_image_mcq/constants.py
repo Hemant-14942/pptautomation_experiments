@@ -31,3 +31,21 @@ IMAGE_BOX = {
     "width": SLIDE_WIDTH_EMU - (HALF_SLIDE_EMU + COLUMN_GAP_EMU) - CONTENT_LEFT_EMU,
     "height": _MCQ_ZONE_BOTTOM - _MCQ_ZONE_TOP + int(0.5 * INCH_EMU),
 }
+
+
+def image_box_for(dspec=None) -> dict[str, int]:
+    """Right-column image box aligned with the MCQ option zone (defence-aware)."""
+    from app.dynamic_rendering.services.format_layout.formatters.qpill_qtext_mcq.constants import (
+        mcq_options_for,
+    )
+
+    options = mcq_options_for(dspec)
+    zone_top = options[0]["pill"]["y"]
+    last_pill = options[3]["pill"]
+    zone_bottom = last_pill["y"] + last_pill["height"]
+    return {
+        "x": IMAGE_BOX["x"],
+        "y": zone_top,
+        "width": IMAGE_BOX["width"],
+        "height": zone_bottom - zone_top + int(0.5 * INCH_EMU),
+    }

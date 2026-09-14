@@ -8,6 +8,7 @@ from lxml import etree
 
 from app.dynamic_rendering.constants.shape_geometry import LABEL_PAIRING_TOLERANCE, PILL_CONTENT_GAP
 from app.dynamic_rendering.domain.models.design_spec import DesignSpec
+from app.dynamic_rendering.services.format_layout.shared.title_content_layout import content_start_y_for
 from app.dynamic_rendering.services.format_layout.shared.title_heading_layout import fixed_title_heading_geometry
 from app.dynamic_rendering.services.text.heading_detector import extract_text_from_slide
 from app.dynamic_rendering.services.text.title_heading_fit import fit_title_heading
@@ -93,11 +94,11 @@ def nudge_y(item: dict[str, Any], dy: int) -> None:
         off_el.set("y", str(parse_emu(off_el.get("y")) + dy))
 
 
-def shift_content_below_pill(items: list[dict[str, Any]]) -> None:
+def shift_content_below_pill(items: list[dict[str, Any]], dspec: DesignSpec | None = None) -> None:
     pill = next((it for it in items if it.get("kind") == "title_heading"), None)
-    if pill is None or not pill.get("off") or not pill.get("ext"):
+    if pill is None:
         return
-    target_y = pill["off"][1] + pill["ext"][1] + PILL_CONTENT_GAP
+    target_y = content_start_y_for(dspec) + PILL_CONTENT_GAP
     for it in items:
         if it.get("kind") in {"title_heading", "heading"}:
             continue
@@ -123,7 +124,7 @@ def apply_detected_heading(
     baseline_pt = dspec.title_heading_font_size_pt
 
     if not any(it.get("kind") == "title_heading" for it in items):
-        geo = fixed_title_heading_geometry()
+        geo = fixed_title_heading_geometry(dspec)
         banner_off = geo["banner_off"]
         banner_ext = geo["banner_ext"]
         label_off = geo["label_off"]
@@ -179,7 +180,7 @@ def apply_detected_heading(
             it["label_font_size_pt"] = fit.label_font_size_pt
             it["wrap_mode"] = fit.wrap_mode
 
-    shift_content_below_pill(items)
+    shift_content_below_pill(items, dspec)
     return items
 
 

@@ -44,7 +44,7 @@ def collect_inputs(input_path: str, dspec: DesignSpec | None = None) -> list[dic
     for idx, slide in enumerate(prs.slides):
         slide_type = detect_slide_type(signatures[idx], slide, prs)
         if slide_type is not None:
-            format_slide(slide, slide_type, prs)
+            format_slide(slide, slide_type, prs, dspec)
 
         sptree = slide._element.find(q("p:cSld") + "/" + q("p:spTree"))
         if sptree is None:

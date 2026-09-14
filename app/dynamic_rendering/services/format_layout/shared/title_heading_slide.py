@@ -13,18 +13,18 @@ from app.dynamic_rendering.services.format_layout.shared.title_heading_layout im
 )
 
 
-def format_title_heading_shapes(slide: Slide, slide_width: int) -> bool:
+def format_title_heading_shapes(slide: Slide, slide_width: int, dspec=None) -> bool:
     shapes = find_title_heading_shapes(slide, slide_width)
     if shapes is None:
         return False
 
     sp_tree = slide.shapes._spTree
-    replace_shape(sp_tree, shapes["banner_el"], format_title_banner(shapes["banner_el"]))
+    replace_shape(sp_tree, shapes["banner_el"], format_title_banner(shapes["banner_el"], dspec))
 
     if shapes["icon_el"] is not None:
-        replace_shape(sp_tree, shapes["icon_el"], format_title_icon(shapes["icon_el"]))
+        replace_shape(sp_tree, shapes["icon_el"], format_title_icon(shapes["icon_el"], dspec))
 
     if shapes["label_el"] is not None:
-        replace_shape(sp_tree, shapes["label_el"], format_title_label(shapes["label_el"]))
+        replace_shape(sp_tree, shapes["label_el"], format_title_label(shapes["label_el"], dspec))
 
     return True

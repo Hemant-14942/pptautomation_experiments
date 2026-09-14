@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pptx.slide import Slide
 
-from app.dynamic_rendering.services.classifiers.option_label import option_idx_for_letter
 from app.dynamic_rendering.services.format_layout.detection.input_mcq_options import (
     collect_input_mcq_options,
 )
@@ -44,21 +43,21 @@ def find_mcq_slide_shapes(slide: Slide) -> dict | None:
         and question_label_el is not None
         and question_text_el is not None
         and len(options) >= 1
-        and len(mcq_text_els) >= 1
     ):
         return None
 
-    count = min(len(options), len(mcq_text_els))
+    # Pair pills top-to-bottom with answer texts in the same order.
+    # Missing answer text for a pill is fine — still format the pill layout slot.
     mcq_options = []
-    for idx in range(count):
-        opt = options[idx]
+    for option_idx, opt in enumerate(options):
+        text_el = mcq_text_els[option_idx] if option_idx < len(mcq_text_els) else None
         mcq_options.append(
             {
                 "pill_el": opt["pill_el"],
                 "label_el": opt["label_el"],
                 "letter": opt["letter"],
-                "option_idx": option_idx_for_letter(opt["letter"]),
-                "text_el": mcq_text_els[idx],
+                "option_idx": option_idx,
+                "text_el": text_el,
                 "grouped": opt["grouped"],
             }
         )

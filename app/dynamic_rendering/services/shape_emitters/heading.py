@@ -63,7 +63,7 @@ def emit_title_heading(
 ) -> None:
     """Topic-title banner: template banner + icon, with input title text."""
     wrap_mode = item.get("wrap_mode", False)
-    geo = fixed_title_heading_geometry()
+    geo = fixed_title_heading_geometry(dspec)
     label_off = item.get("label_off") or geo["label_off"]
     label_ext = item.get("label_ext") or geo["label_ext"]
     icon_off = item.get("icon_off") or geo["icon_off"]

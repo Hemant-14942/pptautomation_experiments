@@ -2,7 +2,7 @@
 
 from lxml import etree
 
-from app.dynamic_rendering.services.format_layout.formatters.body_only.constants import BODY_TEXTBOX
+from app.dynamic_rendering.services.format_layout.formatters.body_only.constants import body_textbox_for
 from app.dynamic_rendering.services.format_layout.shared.text_layout import set_vertical_center_anchor
 from app.dynamic_rendering.utils.xml.shape_mutators import (
     clone_and_place,
@@ -11,9 +11,10 @@ from app.dynamic_rendering.utils.xml.shape_mutators import (
 )
 
 
-def format_body_text(body_shape_el: etree._Element) -> etree._Element:
-    off = (BODY_TEXTBOX["x"], BODY_TEXTBOX["y"])
-    ext = (BODY_TEXTBOX["width"], BODY_TEXTBOX["height"])
+def format_body_text(body_shape_el: etree._Element, dspec=None) -> etree._Element:
+    box = body_textbox_for(dspec)
+    off = (box["x"], box["y"])
+    ext = (box["width"], box["height"])
     clone = clone_and_place(body_shape_el, off, ext)
     enable_text_wrapping(clone)
     set_vertical_center_anchor(clone)

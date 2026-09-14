@@ -8,7 +8,7 @@ from app.dynamic_rendering.services.format_layout.formatters.image_only.shapes i
 from app.dynamic_rendering.services.format_layout.shared.slide_tree import replace_shape
 
 
-def format_image_only_slide(slide: Slide, prs: Presentation | None = None) -> bool:
+def format_image_only_slide(slide: Slide, prs: Presentation | None = None, dspec=None) -> bool:
     shapes = find_shapes(slide)
     if shapes is None:
         return False
