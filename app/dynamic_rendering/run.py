@@ -21,9 +21,9 @@ if __name__ == "__main__":
     paths.ensure()
 
     run(
-        input_path=str(paths.input_dir / "p.pptx"),
+        input_path=str(paths.input_dir / "qpill_qtext_image.pptx"),
         template_path=str(paths.templates_dir / "standard-red.pptx"),
-        output_path=str(paths.output_dir / "pill_gap_testing.pptx"),
+        output_path=str(paths.output_dir / "test_qpill_qtext_image.pptx"),
     )
 
 # command to run the script

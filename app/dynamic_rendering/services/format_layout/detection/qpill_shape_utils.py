@@ -9,9 +9,10 @@ from app.dynamic_rendering.services.classifiers.option_label import parse_input_
 from app.dynamic_rendering.services.format_layout.detection.input_mcq_options import (
     collect_input_mcq_options,
 )
-from app.dynamic_rendering.utils.xml.helpers import local_name, prst_geom
+from app.dynamic_rendering.utils.xml.helpers import local_name, prst_geom, text_of
 
 INCH_EMU = 914_400
+MATH_NS = "http://schemas.openxmlformats.org/officeDocument/2006/math"
 QUESTION_LABEL_TEXT = "Question"
 PILL_TO_TEXT_GAP_EMU = int(0.1 * INCH_EMU)
 MCQ_ANSWER_TOP_TOLERANCE_EMU = int(1.5 * INCH_EMU)
@@ -23,6 +24,22 @@ def is_group(el: etree._Element) -> bool:
 
 def _is_excluded_label(text: str) -> bool:
     return text == QUESTION_LABEL_TEXT or parse_input_option_label(text) is not None
+
+
+def has_math_content(el: etree._Element) -> bool:
+    return bool(
+        el.findall(f".//{{{MATH_NS}}}oMath")
+        or el.findall(f".//{{{MATH_NS}}}oMathPara")
+    )
+
+
+def has_answer_content(el: etree._Element, plain_text: str) -> bool:
+    if plain_text and not _is_excluded_label(plain_text):
+        return True
+    full_text = text_of(el).strip()
+    if full_text and not _is_excluded_label(full_text):
+        return True
+    return has_math_content(el)
 
 
 def question_pill_bottom_emu(slide: Slide) -> int | None:
@@ -84,10 +101,12 @@ def find_mcq_answer_text_elements(
         elem = sp._element
         if elem is question_text_el:
             continue
-        text = sp.text_frame.text.strip()
-        if len(text) < 1 or _is_excluded_label(text):
-            continue
         if sp.top < min_top:
+            continue
+        text = sp.text_frame.text.strip()
+        if _is_excluded_label(text):
+            continue
+        if not has_answer_content(elem, text):
             continue
         candidates.append((sp.top, elem))
 
