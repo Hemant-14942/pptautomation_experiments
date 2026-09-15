@@ -6,7 +6,7 @@ from app.dynamic_rendering.services.format_layout.shared.qpill_layout import (
 )
 
 INCH_EMU = 914_400
-SLIDE_HEIGHT_EMU = 22.5 * INCH_EMU
+SLIDE_HEIGHT_EMU = int(22.5 * INCH_EMU)
 
 CONTENT_LEFT_EMU = 1_104_806
 CONTENT_WIDTH_EMU = 34_747_200

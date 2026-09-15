@@ -15,7 +15,7 @@ Layout (same vertical band as title_table_only, but with 1in bottom margin):
 
 INCH_EMU = 914_400
 SLIDE_WIDTH_EMU = 40 * INCH_EMU
-SLIDE_HEIGHT_EMU = 22.5 * INCH_EMU
+SLIDE_HEIGHT_EMU = int(22.5 * INCH_EMU)
 
 # Where the heading pill ends on title-based slides (start table box here).
 BOX_TOP_EMU = 4_711_025  # 5.151 inches

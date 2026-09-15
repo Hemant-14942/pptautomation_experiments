@@ -13,7 +13,7 @@ PowerPoint stores sizes in EMU (English Metric Units).
 # ---------------------------------------------------------------------------
 INCH_EMU = 914_400          # 1 inch in EMU units
 SLIDE_WIDTH_EMU = 40 * INCH_EMU    # 36,576,000  → 40 inches wide
-SLIDE_HEIGHT_EMU = 22.5 * INCH_EMU  # 20,574,000  → 22.5 inches tall
+SLIDE_HEIGHT_EMU = int(22.5 * INCH_EMU)  # 20,574,000  → 22.5 inches tall
 
 # Empty space we leave on every side of the slide (like a page margin).
 SIDE_MARGIN_EMU = INCH_EMU  # 1 inch margin on left, right, top, and bottom

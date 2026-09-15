@@ -10,6 +10,8 @@ from app.dynamic_rendering.services.format_layout.detection.slide_type_detector 
     SLIDE_TYPE_IMAGE_ONLY,
     SLIDE_TYPE_QUESTION_QTEXT_MCQ,
     SLIDE_TYPE_QPILL_QTEXT_IMAGE_MCQ,
+    SLIDE_TYPE_QPILL_QTEXT_MULTIPLE_IMAGE,
+    SLIDE_TYPE_QPILL_QTEXT_SINGLE_IMAGE,
     SLIDE_TYPE_QPILL_ONLY,
     SLIDE_TYPE_QPILL_QTEXT_ONLY,
     SLIDE_TYPE_QPILL_QTEXT_TABLE_MCQ,
@@ -31,6 +33,12 @@ from app.dynamic_rendering.services.format_layout.formatters.qpill_qtext_image_m
 )
 from app.dynamic_rendering.services.format_layout.formatters.qpill_qtext_mcq.slide import (
     format_qpill_qtext_mcq_slide,
+)
+from app.dynamic_rendering.services.format_layout.formatters.qpill_qtext_multiple_image.slide import (
+    format_qpill_qtext_multiple_image_slide,
+)
+from app.dynamic_rendering.services.format_layout.formatters.qpill_qtext_single_image.slide import (
+    format_qpill_qtext_single_image_slide,
 )
 from app.dynamic_rendering.services.format_layout.formatters.qpill_only.slide import (
     format_qpill_only_slide,
@@ -74,6 +82,8 @@ SLIDE_FORMATTERS: dict[str, object] = {
     SLIDE_TYPE_QUESTION_QTEXT_MCQ: format_qpill_qtext_mcq_slide,
     SLIDE_TYPE_QPILL_QTEXT_TABLE_MCQ: format_qpill_qtext_table_mcq_slide,
     SLIDE_TYPE_QPILL_QTEXT_IMAGE_MCQ: format_qpill_qtext_image_mcq_slide,
+    SLIDE_TYPE_QPILL_QTEXT_SINGLE_IMAGE: format_qpill_qtext_single_image_slide,
+    SLIDE_TYPE_QPILL_QTEXT_MULTIPLE_IMAGE: format_qpill_qtext_multiple_image_slide,
 }
 
 

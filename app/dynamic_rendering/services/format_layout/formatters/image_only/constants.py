@@ -10,7 +10,7 @@ import math
 
 INCH_EMU = 914_400
 SLIDE_WIDTH_EMU = 40 * INCH_EMU
-SLIDE_HEIGHT_EMU = 22.5 * INCH_EMU
+SLIDE_HEIGHT_EMU = int(22.5 * INCH_EMU)
 
 # Empty space around the whole slide.
 SIDE_MARGIN_EMU = 2 * INCH_EMU  # 2 inch on each side

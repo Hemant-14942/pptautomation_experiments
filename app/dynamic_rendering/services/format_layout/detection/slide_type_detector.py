@@ -27,6 +27,8 @@ SLIDE_TYPE_QPILL_QTEXT_TABLE_MCQ = "qpill_qtext_table_mcq"
 SLIDE_TYPE_QPILL_QTEXT_ONLY = "qpill_qtext_only"
 SLIDE_TYPE_QPILL_ONLY = "qpill_only"
 SLIDE_TYPE_QPILL_QTEXT_IMAGE_MCQ = "qpill_qtext_image_mcq"
+SLIDE_TYPE_QPILL_QTEXT_SINGLE_IMAGE = "qpill_qtext_single_image"
+SLIDE_TYPE_QPILL_QTEXT_MULTIPLE_IMAGE = "qpill_qtext_multiple_image"
 
 IMAGE_Y_THRESHOLD_EMU = 1_828_800  # 2.0 inches
 
@@ -150,6 +152,23 @@ def qualifies_for_qpill_only_slide(
     return _qualifies_for_qpill_base_slide(slide, prs, signature) and not has_question_text_below_pill(slide)
 
 
+def qualifies_for_qpill_qtext_image_slide(
+    slide: Slide, prs: PresentationType, signature: dict[str, Any]
+) -> bool:
+    """Question pill + question text + one or more images (no MCQ, no table)."""
+    if extract_text_from_slide(slide, 0, prs).get("heading") is not None:
+        return False
+    if not has_question_pill(slide):
+        return False
+    if has_mcq_structure(slide) or has_option_pill_shapes(slide):
+        return False
+    if count_actual_tables(slide) > 0:
+        return False
+    if count_real_images(slide) == 0:
+        return False
+    return has_question_text_below_pill(slide)
+
+
 def detect_slide_type(
     signature: dict[str, Any], slide: Slide, prs: PresentationType
 ) -> str | None:
@@ -170,6 +189,11 @@ def detect_slide_type(
 
     if qualifies_for_qpill_only_slide(slide, prs, signature):
         return SLIDE_TYPE_QPILL_ONLY
+
+    if qualifies_for_qpill_qtext_image_slide(slide, prs, signature):
+        if count_real_images(slide) == 1:
+            return SLIDE_TYPE_QPILL_QTEXT_SINGLE_IMAGE
+        return SLIDE_TYPE_QPILL_QTEXT_MULTIPLE_IMAGE
 
     heading = extract_text_from_slide(slide, 0, prs).get("heading")
     has_heading = heading is not None
