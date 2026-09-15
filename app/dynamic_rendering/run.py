@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import app.dynamic_rendering.log  # noqa: F401 — configure ECS logging
 
-from app.config.settings import Paths
+from app.dynamic_rendering.config.settings import Paths
 from app.dynamic_rendering.services.orchestrator import build_deck
 
 
@@ -21,9 +21,9 @@ if __name__ == "__main__":
     paths.ensure()
 
     run(
-        input_path=str(paths.input_dir / "qpill_qtext_image.pptx"),
+        input_path=str(paths.input_dir / "p4.pptx"),
         template_path=str(paths.templates_dir / "standard-red.pptx"),
-        output_path=str(paths.output_dir / "test_qpill_qtext_image.pptx"),
+        output_path=str(paths.output_dir / "test_p4.pptx"),
     )
 
 # command to run the script
