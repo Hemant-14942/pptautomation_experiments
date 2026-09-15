@@ -4,7 +4,7 @@ from pptx.presentation import Presentation
 from pptx.slide import Slide
 
 from app.dynamic_rendering.services.format_layout.formatters.qpill_qtext_image_mcq.formatter import (
-    format_image,
+    format_images,
     format_mcq_answer_text,
     format_mcq_option_label,
     format_mcq_option_pill,
@@ -35,11 +35,9 @@ def format_qpill_qtext_image_mcq_slide(slide: Slide, prs: Presentation | None = 
     replace_shape(
         sp_tree, shapes["question_text_el"], format_question_text(shapes["question_text_el"], dspec)
     )
-    replace_shape(
-        sp_tree,
-        shapes["picture_el"],
-        format_image(shapes["picture_el"], *shapes["picture_size"], dspec),
-    )
+    clones = format_images(shapes["picture_els"], shapes["picture_sizes"], dspec)
+    for pic_el, clone in zip(shapes["picture_els"], clones):
+        replace_shape(sp_tree, pic_el, clone)
 
     for opt in shapes["mcq_options"]:
         opt_idx = opt["option_idx"]

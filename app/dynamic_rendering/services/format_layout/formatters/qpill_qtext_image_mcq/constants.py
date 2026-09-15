@@ -15,12 +15,6 @@ CONTENT_LEFT_EMU = 1_104_806
 ANSWER_TEXT_X = 3_107_605
 LEFT_ANSWER_WIDTH_EMU = HALF_SLIDE_EMU - ANSWER_TEXT_X - COLUMN_GAP_EMU
 
-MCQ_OPTIONS = []
-for opt in _BASE_MCQ_OPTIONS:
-    text_box = dict(opt["text_box"])
-    text_box["width"] = LEFT_ANSWER_WIDTH_EMU
-    MCQ_OPTIONS.append({**opt, "text_box": text_box})
-
 _MCQ_ZONE_TOP = _BASE_MCQ_OPTIONS[0]["pill"]["y"]
 _LAST_PILL = _BASE_MCQ_OPTIONS[3]["pill"]
 _MCQ_ZONE_BOTTOM = _LAST_PILL["y"] + _LAST_PILL["height"]
@@ -49,3 +43,27 @@ def image_box_for(dspec=None) -> dict[str, int]:
         "width": IMAGE_BOX["width"],
         "height": zone_bottom - zone_top + int(0.5 * INCH_EMU),
     }
+
+
+def image_boxes_for(num_images: int, dspec=None) -> list[dict[str, int]]:
+    """Per-image boxes inside the reserved right column.
+
+    One image fills the whole column (same as image_box_for). Two images
+    are stacked vertically, each taking 45% of the column height with a
+    5% gap between them, mirroring title_body_multiple_images.
+    """
+    area = image_box_for(dspec)
+    if num_images <= 1:
+        return [area]
+
+    height_per_image = round(area["height"] * 0.45)
+    gap = round(area["height"] * 0.05)
+    return [
+        {"x": area["x"], "y": area["y"], "width": area["width"], "height": height_per_image},
+        {
+            "x": area["x"],
+            "y": area["y"] + height_per_image + gap,
+            "width": area["width"],
+            "height": height_per_image,
+        },
+    ]

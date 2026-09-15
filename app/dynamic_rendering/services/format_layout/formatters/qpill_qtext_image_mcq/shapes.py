@@ -17,23 +17,23 @@ def find_shapes(slide: Slide) -> dict | None:
     if shapes is None:
         return None
 
-    picture_el = None
-    picture_size = None
+    pictures: list[tuple[int, int, object, tuple[int, int]]] = []
     for sp in slide.shapes:
         shape_type = sp.shape_type
         if shape_type is not None and getattr(shape_type, "name", "") == "PICTURE":
             if sp.top is not None and sp.top > IMAGE_Y_THRESHOLD_EMU:
-                picture_el = sp._element
-                picture_size = sp.image.size
-                break
-    if picture_el is None or picture_size is None:
+                pictures.append((sp.top, sp.left, sp._element, sp.image.size))
+
+    if not pictures or len(pictures) > 2:
         return None
+
+    pictures.sort(key=lambda item: (item[0], item[1]))
 
     mcq_options = shapes["mcq_options"]
     return {
         **shapes,
-        "picture_el": picture_el,
-        "picture_size": picture_size,
+        "picture_els": [p[2] for p in pictures],
+        "picture_sizes": [p[3] for p in pictures],
         "mcq_pill_els": [opt["pill_el"] for opt in mcq_options],
         "mcq_label_els": {
             opt["letter"]: opt["label_el"]

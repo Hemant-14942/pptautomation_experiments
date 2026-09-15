@@ -4,7 +4,8 @@ from lxml import etree
 
 from app.dynamic_rendering.services.format_layout.detection.qpill_shape_utils import is_group
 from app.dynamic_rendering.services.format_layout.formatters.qpill_qtext_image_mcq.constants import (
-    image_box_for,
+    LEFT_ANSWER_WIDTH_EMU,
+    image_boxes_for,
 )
 from app.dynamic_rendering.services.format_layout.formatters.qpill_qtext_mcq.constants import (
     question_text_for,
@@ -44,16 +45,19 @@ def format_question_text(text_el: etree._Element, dspec=None) -> etree._Element:
     return clone
 
 
-def format_image(
-    picture_el: etree._Element,
-    image_width_px: int,
-    image_height_px: int,
+def format_images(
+    picture_els: list[etree._Element],
+    image_sizes: list[tuple[int, int]],
     dspec=None,
-) -> etree._Element:
-    fitted = fit_image_to_box(image_width_px, image_height_px, image_box_for(dspec))
-    off = (fitted["x"], fitted["y"])
-    ext = (fitted["width"], fitted["height"])
-    return clone_and_place(picture_el, off, ext)
+) -> list[etree._Element]:
+    image_boxes = image_boxes_for(len(picture_els), dspec)
+    clones = []
+    for pic_el, (img_w, img_h), box in zip(picture_els, image_sizes, image_boxes):
+        fitted = fit_image_to_box(img_w, img_h, box)
+        off = (fitted["x"], fitted["y"])
+        ext = (fitted["width"], fitted["height"])
+        clones.append(clone_and_place(pic_el, off, ext))
+    return clones
 
 
 def format_mcq_option_pill(
@@ -83,7 +87,8 @@ def format_mcq_option_label(
 
 def format_mcq_answer_text(option_idx: int, text_el: etree._Element, dspec=None) -> etree._Element:
     option = option_layout_for(option_idx, dspec)
-    text_box = option["text_box"]
+    text_box = dict(option["text_box"])
+    text_box["width"] = LEFT_ANSWER_WIDTH_EMU
     off = (text_box["x"], text_box["y"])
     ext = (text_box["width"], text_box["height"])
     clone = clone_and_place(text_el, off, ext)
