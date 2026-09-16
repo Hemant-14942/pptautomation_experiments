@@ -145,6 +145,7 @@ def apply_detected_heading(
                 "off": banner_off,
                 "ext": fit.banner_ext,
                 "label_text": heading["text"],
+                "label_runs": heading.get("runs"),
                 "label_off": label_off,
                 "label_ext": fit.label_ext,
                 "label_font_size_pt": fit.label_font_size_pt,
@@ -162,6 +163,7 @@ def apply_detected_heading(
             if it.get("kind") != "title_heading":
                 continue
             it["label_text"] = heading["text"]
+            it["label_runs"] = heading.get("runs")
             orig_off = it.get("_orig_off", it["off"])
             orig_ext = it.get("_orig_ext", it["ext"])
             orig_label_off = it.get("_orig_label_off", it["label_off"])

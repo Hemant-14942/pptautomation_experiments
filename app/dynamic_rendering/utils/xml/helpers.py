@@ -107,6 +107,58 @@ def text_of(elem: etree._Element) -> str:
     return "".join(t.text or "" for t in elem.iter(q("a:t"))).strip()
 
 
+def runs_of(elem: etree._Element) -> list[dict]:
+    """
+    Per-run text with its font size/baseline offset, in document order — used
+    (alongside `text_of`) wherever a title's per-run styling (e.g. a raised or
+    shrunk sub-/superscript character) needs to be preserved rather than
+    flattened into one string.
+    """
+    runs = []
+    for r_el in elem.iter(q("a:r")):
+        t_el = r_el.find(q("a:t"))
+        if t_el is None or not t_el.text:
+            continue
+        rPr = r_el.find(q("a:rPr"))
+        font_size_pt = None
+        baseline = None
+        if rPr is not None:
+            sz = rPr.get("sz")
+            if sz:
+                try:
+                    font_size_pt = int(int(sz) / 100)
+                except ValueError:
+                    pass
+            baseline = rPr.get("baseline")
+        runs.append({"text": t_el.text, "font_size_pt": font_size_pt, "baseline": baseline})
+    return runs
+
+
+def runs_with_scale(entries: list[dict], default_size: float) -> list[dict]:
+    """
+    Convert `runs_of()`-shaped entries into {"text", "scale", "baseline"} runs,
+    where `scale` is each run's font size relative to the dominant (non-offset)
+    size in `entries` — used to re-emit a title's sub-/superscript run at the
+    same relative size instead of flattening every run to one uniform size.
+    """
+    plain_sizes = [e["font_size_pt"] for e in entries if not e.get("baseline") and e.get("font_size_pt")]
+    if plain_sizes:
+        dominant_size = max(set(plain_sizes), key=plain_sizes.count)
+    elif entries and entries[0].get("font_size_pt"):
+        dominant_size = entries[0]["font_size_pt"]
+    else:
+        dominant_size = default_size
+
+    return [
+        {
+            "text": e["text"],
+            "scale": (e.get("font_size_pt") or dominant_size) / dominant_size,
+            "baseline": e.get("baseline"),
+        }
+        for e in entries
+    ]
+
+
 def in_range(
     ext: tuple[int, int] | None,
     cx_range: tuple[int, int],

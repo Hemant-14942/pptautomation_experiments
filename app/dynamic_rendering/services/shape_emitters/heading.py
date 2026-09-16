@@ -21,10 +21,25 @@ from app.dynamic_rendering.utils.xml.shape_mutators import (
     set_all_run_colors,
     set_all_run_fonts,
     set_all_run_sizes,
+    set_multirun_text,
     set_shape_fill,
     set_text,
     strip_blip_ext_lst,
 )
+
+
+def _set_title_text(el: etree._Element, item: dict[str, Any], base_font_pt: float) -> None:
+    """
+    Write title text, preserving any per-run size/baseline styling (e.g. a raised
+    subscript/superscript character) when the source title had it. Falls back to
+    the plain single-run path when no such styling was detected.
+    """
+    label_runs = item.get("label_runs")
+    if label_runs:
+        set_multirun_text(el, label_runs, base_font_pt)
+    else:
+        set_text(el, item["label_text"])
+        set_all_run_sizes(el, base_font_pt)
 
 
 def emit_heading(spTree: etree._Element, item: dict[str, Any], dspec: DesignSpec, id_state: dict[str, int]) -> None:
@@ -73,14 +88,11 @@ def emit_title_heading(
         banner = clone_and_place(dspec.title_banner_el, item["off"], item["ext"])
         set_shape_fill(banner, dspec.question_pill_fill)
         if dspec.title_label_el is None and item.get("label_text"):
-            set_text(banner, item["label_text"])
+            base_font_pt = item.get("label_font_size_pt") or FIXED_HEADING_FONT_PT
+            _set_title_text(banner, item, base_font_pt)
             set_all_run_colors(banner, dspec.question_pill_text_color)
             if dspec.question_pill_font:
                 set_all_run_fonts(banner, dspec.question_pill_font)
-            if item.get("label_font_size_pt") is not None:
-                set_all_run_sizes(banner, item["label_font_size_pt"])
-            else:
-                set_all_run_sizes(banner, FIXED_HEADING_FONT_PT)
             if wrap_mode:
                 enable_text_wrapping(banner)
         renumber_ids(banner, id_state)
@@ -88,14 +100,11 @@ def emit_title_heading(
 
     if dspec.title_label_el is not None:
         label = clone_and_place(dspec.title_label_el, label_off, label_ext)
-        set_text(label, item["label_text"])
+        base_font_pt = item.get("label_font_size_pt") or FIXED_HEADING_FONT_PT
+        _set_title_text(label, item, base_font_pt)
         set_all_run_colors(label, dspec.question_pill_text_color)
         if dspec.question_pill_font:
             set_all_run_fonts(label, dspec.question_pill_font)
-        if item.get("label_font_size_pt") is not None:
-            set_all_run_sizes(label, item["label_font_size_pt"])
-        else:
-            set_all_run_sizes(label, FIXED_HEADING_FONT_PT)
         if wrap_mode:
             enable_text_wrapping(label)
             enable_shrink_to_fit(label)

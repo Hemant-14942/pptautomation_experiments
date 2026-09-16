@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.dynamic_rendering.constants.design_tokens_defaults import DEFAULT_HEADING_FONT_PT
-from app.dynamic_rendering.utils.xml.helpers import local_name, off_ext, q
+from app.dynamic_rendering.utils.xml.helpers import local_name, off_ext, q, runs_with_scale
 
 
 def extract_color_from_run(run_element) -> str | None:
@@ -29,9 +29,11 @@ def get_text_run_info(run_element, shape_position) -> dict[str, Any] | None:
     t_elem = run_element.find(q("a:t"))
     if t_elem is None or not t_elem.text:
         return None
-    text = t_elem.text.strip()
-    if not text:
-        return None
+    # Keep the raw run text (not stripped): interior runs can carry a
+    # meaningful leading/trailing space (e.g. the " ions" run after a
+    # styled sub/superscript dash run), and stripping it here would glue
+    # adjacent runs together once they're rejoined in pick_heading().
+    text = t_elem.text
 
     rPr = run_element.find(q("a:rPr"))
     info: dict[str, Any] = {
@@ -42,6 +44,7 @@ def get_text_run_info(run_element, shape_position) -> dict[str, Any] | None:
         "color": None,
         "italic": False,
         "underline": False,
+        "baseline": None,
         "position_top_left": shape_position,
         "position_center": None,
     }
@@ -53,6 +56,7 @@ def get_text_run_info(run_element, shape_position) -> dict[str, Any] | None:
                 info["font_size_pt"] = int(int(sz) / 100)
             except ValueError:
                 pass
+        info["baseline"] = rPr.get("baseline")
         b = rPr.get("b")
         info["bold"] = b == "1" or b == "true"
         i = rPr.get("i")
@@ -86,11 +90,16 @@ def pick_heading(text_elements: list[dict[str, Any]], slide_height: int) -> dict
     pool = sorted(size_80, key=sort_key)
     first = pool[0]
     pos = first.get("position_top_left")
-    same_shape = [e for e in pool if e.get("position_top_left") == pos]
-    text = "".join(e["text"] for e in same_shape)
+    # The 80pt filter above is only used to *locate* the heading shape.
+    # Build the actual text from every run at that shape's position,
+    # regardless of size, so a differently-sized run inside the title
+    # (e.g. a styled subscript/superscript character) isn't dropped.
+    same_shape = [e for e in text_elements if e.get("position_top_left") == pos]
+    text = "".join(e["text"] for e in same_shape).strip()
 
     return {
         "text": text,
+        "runs": runs_with_scale(same_shape, DEFAULT_HEADING_FONT_PT),
         "font_size_pt": first.get("font_size_pt"),
         "bold": first.get("bold"),
         "font_name": first.get("font_name"),

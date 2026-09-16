@@ -117,6 +117,66 @@ def set_text(el: etree._Element, text: str) -> None:
         t_el.text = text
 
 
+def set_multirun_text(el: etree._Element, runs: list[dict], base_font_pt: float) -> None:
+    """
+    Replace a shape's text with multiple runs, each carrying its own size (scaled
+    off ``base_font_pt``) and baseline offset — used only for title/heading text so
+    a source run styled as a raised/shrunk sub- or superscript character (e.g. the
+    "-" in "Cl- ions", or the "3" in "O3") keeps that styling instead of being
+    flattened into one uniform run by `set_text()` + `set_all_run_sizes()`.
+
+    Only used by the title-heading emit path; `set_text()` (used for MCQ option
+    letters and the "Question" pill label) is untouched by this function.
+
+    XML tree we EDIT:
+      p:txBody
+        a:p
+          a:r (existing, used as the style template for rPr — font/color/etc.)
+            a:rPr
+            a:t
+          a:endParaRPr (left as-is; new a:r's are inserted before it)
+    """
+    txBody = el.find(q("p:txBody"))
+    if txBody is None:
+        txBody = el.find(q("a:txBody"))
+    if txBody is None:
+        return
+    p_el = txBody.find(q("a:p"))
+    if p_el is None:
+        return
+
+    existing_runs = p_el.findall(q("a:r"))
+    if not existing_runs:
+        return
+    template_rPr = existing_runs[0].find(q("a:rPr"))
+
+    for r_el in existing_runs:
+        p_el.remove(r_el)
+
+    end_para_rpr = p_el.find(q("a:endParaRPr"))
+    insert_at = list(p_el).index(end_para_rpr) if end_para_rpr is not None else len(p_el)
+    if end_para_rpr is not None:
+        # Not visible text — just what PowerPoint uses if a user later types at the
+        # end of the line — but keep it consistent with the old set_all_run_sizes()
+        # behavior, which always set every rPr/endParaRPr to the same base size.
+        end_para_rpr.set("sz", str(int(round(base_font_pt * 100))))
+
+    for offset, run in enumerate(runs):
+        new_r = etree.Element(q("a:r"))
+        if template_rPr is not None:
+            new_rPr = copy.deepcopy(template_rPr)
+            new_rPr.set("sz", str(int(round(base_font_pt * run.get("scale", 1.0) * 100))))
+            baseline = run.get("baseline")
+            if baseline:
+                new_rPr.set("baseline", baseline)
+            elif "baseline" in new_rPr.attrib:
+                del new_rPr.attrib["baseline"]
+            new_r.append(new_rPr)
+        t_el = etree.SubElement(new_r, q("a:t"))
+        t_el.text = run["text"]
+        p_el.insert(insert_at + offset, new_r)
+
+
 def set_all_run_colors(el: etree._Element, hex_val: str) -> None:
     """
     Set text color on every run in the shape.

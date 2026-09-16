@@ -17,7 +17,8 @@ from app.dynamic_rendering.domain.models.design_spec import DesignSpec
 from app.dynamic_rendering.services.classifiers.heading_adjust import find_paired_label
 from app.dynamic_rendering.services.format_layout.shared.title_heading_layout import fixed_title_heading_geometry
 from app.dynamic_rendering.services.text.title_heading_fit import fit_title_heading
-from app.dynamic_rendering.utils.xml.helpers import local_name, off_ext, prst_geom, q, text_of
+from app.dynamic_rendering.constants.design_tokens_defaults import DEFAULT_HEADING_FONT_PT
+from app.dynamic_rendering.utils.xml.helpers import local_name, off_ext, prst_geom, q, runs_of, runs_with_scale, text_of
 
 
 def classify_title_banner(
@@ -61,6 +62,11 @@ def classify_title_banner(
         claimed.add(id(c))
 
     label_text_val = text_of(label) if label is not None else ""
+    label_runs_val = (
+        runs_with_scale(runs_of(label), dspec.title_heading_font_size_pt or DEFAULT_HEADING_FONT_PT)
+        if label is not None
+        else None
+    )
     geo = fixed_title_heading_geometry(dspec)
     banner_off = geo["banner_off"]
     banner_ext = geo["banner_ext"]
@@ -80,6 +86,7 @@ def classify_title_banner(
         "off": banner_off,
         "ext": fit.banner_ext,
         "label_text": label_text_val,
+        "label_runs": label_runs_val,
         "label_off": label_off,
         "label_ext": fit.label_ext,
         "label_font_size_pt": fit.label_font_size_pt,

@@ -31,6 +31,7 @@ from app.dynamic_rendering.services.classifiers.media_shapes import (
     classify_picture,
     classify_title_banner,
 )
+from app.dynamic_rendering.services.format_layout.shared.slide_tree import shift_shapes_down
 from app.dynamic_rendering.utils.xml.helpers import local_name, off_ext, q
 
 
@@ -43,13 +44,20 @@ def collect_inputs(input_path: str, dspec: DesignSpec | None = None) -> list[dic
 
     for idx, slide in enumerate(prs.slides):
         slide_type = detect_slide_type(signatures[idx], slide, prs)
+        formatted = False
         if slide_type is not None:
-            format_slide(slide, slide_type, prs, dspec)
+            formatted = format_slide(slide, slide_type, prs, dspec)
 
         sptree = slide._element.find(q("p:cSld") + "/" + q("p:spTree"))
         if sptree is None:
             out.append({"index": idx, "slide_type": slide_type, "items": []})
             continue
+
+        if not formatted and dspec is not None and dspec.has_top_banner():
+            # Unrecognized slide type: no formatter repositioned its shapes,
+            # so nudge everything below the template's reserved banner
+            # instead of leaving the original input coordinates to overlap it.
+            shift_shapes_down(sptree, dspec.top_banner_reserved_emu)
 
         children = [c for c in list(sptree) if local_name(c) in {"sp", "pic", "grpSp", "graphicFrame"}]
         claimed: set = set()
