@@ -43,7 +43,12 @@ def _format_wrapped_autofit_text(text_el: etree._Element, box: dict[str, int]) -
 
 
 def _option_layout(option_idx: int, dspec=None) -> dict:
-    return option_layout_from_options(option_idx, mcq_options_for(dspec))
+    # Defence template: options already come back in a 2-column grid from
+    # mcq_options_for(); pass columns=2 so extrapolated rows beyond D (E, F, ...)
+    # continue the grid instead of stacking straight down. Every other
+    # template: columns=1, the original single-column extrapolation.
+    columns = 2 if dspec is not None and dspec.has_top_banner() else 1
+    return option_layout_from_options(option_idx, mcq_options_for(dspec), columns=columns)
 
 
 def format_question_text(text_el: etree._Element, dspec=None) -> etree._Element:

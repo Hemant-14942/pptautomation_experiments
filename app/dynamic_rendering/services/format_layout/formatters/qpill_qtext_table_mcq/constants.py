@@ -140,6 +140,66 @@ MCQ_OPTIONS = [
     {"label": "D", "pill": OPTION_D_PILL, "label_box": None, "text_box": OPTION_D_TEXT},
 ]
 
+# ============================================================================
+# SECTION 5: MCQ OPTIONS, 2-COLUMN GRID (defence template only)
+#
+# The defence template's title banner already reserves space at the top, so
+# on that template the single vertical column above runs off the bottom of
+# the slide (see defence_grid_layout.svg in this folder). Only there, options
+# regroup into two columns: A/B on row 0, C/D on row 1. Left-column x/width
+# are unchanged from above; the right column mirrors qpill_qtext_image_mcq's
+# HALF_SLIDE_EMU / COLUMN_GAP_EMU split for its second column.
+# ============================================================================
+
+_INCH_EMU = 914_400
+_SLIDE_WIDTH_EMU = 40 * _INCH_EMU
+_HALF_SLIDE_EMU = _SLIDE_WIDTH_EMU // 2
+_GRID_COLUMN_GAP_EMU = int(0.2 * _INCH_EMU)
+
+_GRID_PILL_TO_TEXT_DX = OPTION_A_TEXT["x"] - OPTION_A_PILL["x"]
+_GRID_RIGHT_PILL_X = _HALF_SLIDE_EMU + _GRID_COLUMN_GAP_EMU
+_GRID_RIGHT_TEXT_X = _GRID_RIGHT_PILL_X + _GRID_PILL_TO_TEXT_DX
+
+_GRID_LEFT_TEXT_WIDTH = _HALF_SLIDE_EMU - OPTION_A_TEXT["x"] - _GRID_COLUMN_GAP_EMU
+_GRID_RIGHT_TEXT_WIDTH = _SLIDE_WIDTH_EMU - _GRID_RIGHT_TEXT_X - QUESTION_TEXT["x"]
+
+_GRID_ROW_GAP = OPTION_B_PILL["y"] - OPTION_A_PILL["y"]
+_GRID_TEXT_ROW_GAP = OPTION_B_TEXT["y"] - OPTION_A_TEXT["y"]
+
+_GRID_LABEL_DX = OPTION_A_LABEL["x"] - OPTION_A_PILL["x"]
+_GRID_LABEL_DY = OPTION_A_LABEL["y"] - OPTION_A_PILL["y"]
+
+_GRID_COLUMN_X = {
+    "pill": [OPTION_A_PILL["x"], _GRID_RIGHT_PILL_X],
+    "text": [OPTION_A_TEXT["x"], _GRID_RIGHT_TEXT_X],
+    "text_width": [_GRID_LEFT_TEXT_WIDTH, _GRID_RIGHT_TEXT_WIDTH],
+}
+
+
+def _grid_options(dspec=None) -> list[dict]:
+    """MCQ option rows A-D arranged in a 2-column grid (defence-aware y shift)."""
+    options = []
+    for i, letter in enumerate(("A", "B", "C", "D")):
+        col = i % 2
+        row = i // 2
+        pill_x = _GRID_COLUMN_X["pill"][col]
+        pill_y = _shift_y(OPTION_A_PILL["y"] + row * _GRID_ROW_GAP, dspec)
+        pill = {"x": pill_x, "y": pill_y, "width": OPTION_A_PILL["width"], "height": OPTION_A_PILL["height"]}
+        text_box = {
+            "x": _GRID_COLUMN_X["text"][col],
+            "y": _shift_y(OPTION_A_TEXT["y"] + row * _GRID_TEXT_ROW_GAP, dspec),
+            "width": _GRID_COLUMN_X["text_width"][col],
+            "height": OPTION_A_TEXT["height"],
+        }
+        label_box = {
+            "x": pill_x + _GRID_LABEL_DX,
+            "y": pill_y + _GRID_LABEL_DY,
+            "width": OPTION_A_LABEL["width"],
+            "height": OPTION_A_LABEL["height"],
+        }
+        options.append({"label": letter, "pill": pill, "label_box": label_box, "text_box": text_box})
+    return options
+
 
 def _shift_y(y: int, dspec=None) -> int:
     if dspec is not None and dspec.has_top_banner():
@@ -181,5 +241,13 @@ def _option_row_for(row: dict, dspec=None) -> dict:
 
 
 def mcq_options_for(dspec=None) -> list[dict]:
-    """MCQ option rows A–D below the table (defence-aware y shift)."""
+    """MCQ option rows A-D below the table.
+
+    Defence template (dspec.has_top_banner()): 2-column grid, since the title
+    banner already reserves top space and the single-column layout would run
+    past the bottom of the slide. Every other template: unchanged single
+    column.
+    """
+    if dspec is not None and dspec.has_top_banner():
+        return _grid_options(dspec)
     return [_option_row_for(row, dspec) for row in MCQ_OPTIONS]

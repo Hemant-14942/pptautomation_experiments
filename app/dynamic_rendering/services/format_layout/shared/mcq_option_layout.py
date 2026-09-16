@@ -7,13 +7,19 @@ from app.dynamic_rendering.services.format_layout.formatters.qpill_qtext_mcq.con
 )
 
 
-def option_layout_from_options(option_idx: int, options: list[dict]) -> dict:
-    """Return pill, label_box, text_box, and label letter from a constants MCQ_OPTIONS list."""
+def option_layout_from_options(option_idx: int, options: list[dict], columns: int = 1) -> dict:
+    """Return pill, label_box, text_box, and label letter from a constants MCQ_OPTIONS list.
+
+    `columns` only affects how rows beyond the given `options` (E, F, ...) are
+    extrapolated. Default (1) is the original single-column behavior, used by
+    every caller except the defence-template grid in qpill_qtext_table_mcq.
+    """
     if not options:
         raise ValueError("options must not be empty")
 
-    row_gap = options[1]["pill"]["y"] - options[0]["pill"]["y"]
-    text_row_gap = options[1]["text_box"]["y"] - options[0]["text_box"]["y"]
+    row_step = 2 if columns >= 2 and len(options) > 2 else 1
+    row_gap = options[row_step]["pill"]["y"] - options[0]["pill"]["y"]
+    text_row_gap = options[row_step]["text_box"]["y"] - options[0]["text_box"]["y"]
     first_label_box = options[0].get("label_box")
     label_x = first_label_box["x"] if first_label_box else options[0]["pill"]["x"]
     label_width = first_label_box["width"] if first_label_box else options[0]["pill"]["width"]
@@ -36,10 +42,15 @@ def option_layout_from_options(option_idx: int, options: list[dict]) -> dict:
             opt["label_box"] = _label_box_for_pill_y(opt["pill"]["y"])
         return opt
 
-    base = options[3]
-    extra = option_idx - 3
-    pill_y = base["pill"]["y"] + extra * row_gap
-    text_y = base["text_box"]["y"] + extra * text_row_gap
+    if columns >= 2 and len(options) > 2:
+        col = option_idx % 2
+        row = option_idx // 2
+        base = options[col]
+    else:
+        base = options[-1]
+        row = (option_idx - (len(options) - 1))
+    pill_y = base["pill"]["y"] + row * row_gap
+    text_y = base["text_box"]["y"] + row * text_row_gap
     pill = {**base["pill"], "y": pill_y}
     text_box = {**base["text_box"], "y": text_y}
     letter = chr(ord("A") + option_idx)
