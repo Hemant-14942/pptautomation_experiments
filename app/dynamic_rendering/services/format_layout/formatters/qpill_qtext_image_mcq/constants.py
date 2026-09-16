@@ -23,7 +23,7 @@ IMAGE_BOX = {
     "x": HALF_SLIDE_EMU + COLUMN_GAP_EMU,
     "y": _MCQ_ZONE_TOP,
     "width": SLIDE_WIDTH_EMU - (HALF_SLIDE_EMU + COLUMN_GAP_EMU) - CONTENT_LEFT_EMU,
-    "height": _MCQ_ZONE_BOTTOM - _MCQ_ZONE_TOP + int(0.5 * INCH_EMU),
+    "height": _MCQ_ZONE_BOTTOM - _MCQ_ZONE_TOP + int(2 * INCH_EMU),
 }
 
 
@@ -39,9 +39,9 @@ def image_box_for(dspec=None) -> dict[str, int]:
     zone_bottom = last_pill["y"] + last_pill["height"]
     return {
         "x": IMAGE_BOX["x"],
-        "y": zone_top,
+        "y": zone_top-1000000,
         "width": IMAGE_BOX["width"],
-        "height": zone_bottom - zone_top + int(0.5 * INCH_EMU),
+        "height": zone_bottom - zone_top + int(2 * INCH_EMU),
     }
 
 
@@ -56,7 +56,7 @@ def image_boxes_for(num_images: int, dspec=None) -> list[dict[str, int]]:
     if num_images <= 1:
         return [area]
 
-    height_per_image = round(area["height"] * 0.45)
+    height_per_image = round(area["height"] * 0.48)
     gap = round(area["height"] * 0.05)
     return [
         {"x": area["x"], "y": area["y"], "width": area["width"], "height": height_per_image},

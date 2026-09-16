@@ -21,9 +21,9 @@ if __name__ == "__main__":
     paths.ensure()
 
     run(
-        input_path=str(paths.input_dir / "p.pptx"),
-        template_path=str(paths.templates_dir / "defence.pptx"),
-        output_path=str(paths.output_dir / "test_p_defence1.pptx"),
+        input_path=str(paths.input_dir / "p-test.pptx"),
+        template_path=str(paths.templates_dir / "red-final.pptx"),
+        output_path=str(paths.output_dir / "test_p_red-final.pptx"),
     )
 
 # command to run the script

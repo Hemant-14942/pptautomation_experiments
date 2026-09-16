@@ -10,11 +10,11 @@ only supplies colors and shape XML to clone.
 """
 
 # 0-based slide indices; negative counts from the end of the deck.
-MCQ_DESIGN_SLIDE_INDEX = -2
+MCQ_DESIGN_SLIDE_INDEX = -3
 TITLE_DESIGN_SLIDE_INDEX = -1
 
 # Every output slide reuses this template slide's layout shell and background.
-OUTPUT_TEMPLATE_SLIDE_INDEX = -1
+OUTPUT_TEMPLATE_SLIDE_INDEX = -2
 
 FIXED_FONT = "Cambria"
 FIXED_HEADING_FONT_PT = 80
