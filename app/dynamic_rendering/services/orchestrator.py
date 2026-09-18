@@ -16,15 +16,25 @@ from app.dynamic_rendering.services.output_assembler import build_output
 logger = logging.getLogger(__name__)
 
 
-def build_deck(input_path: str, template_path: str, output_path: str) -> None:
-    logger.info("build started", extra={"input": input_path, "template": template_path, "output": output_path})
+def build_deck(
+    input_path: str,
+    template_path: str,
+    output_path: str,
+    is_defence: bool = False,
+) -> None:
+    logger.info(
+        "build started",
+        extra={"input": input_path, "template": template_path, "output": output_path, "is_defence": is_defence},
+    )
 
     archive = read_template_archive(template_path)
-    dspec = get_design_spec(template_path)
+    dspec = get_design_spec(template_path, is_defence=is_defence)
     logger.info(
         "design spec loaded",
         extra={
             "source": dspec.source,
+            "is_defence": is_defence,
+            "has_top_banner": dspec.has_top_banner(),
             "question_pill_fill": dspec.question_pill_fill,
             "option_fill": dspec.option_fill,
             "table_header_fill": dspec.table_header_fill,

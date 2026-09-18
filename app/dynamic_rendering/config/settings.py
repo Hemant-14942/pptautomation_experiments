@@ -3,7 +3,7 @@ import os
 from dataclasses import dataclass
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DATA_DIR = REPO_ROOT / "app" / "data"
+DATA_DIR = REPO_ROOT / "data"
 
 
 @dataclass(frozen=True)

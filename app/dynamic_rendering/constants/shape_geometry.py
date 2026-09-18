@@ -43,9 +43,4 @@ PILL_CONTENT_GAP = 0
 
 # defence ppt constants need all here
 # sits below this Y offset so content does not collide with the master banner.
-DEFENCE_BANNER_HEIGHT_EMU = 2_011_320
-# Positive = 1-based slide number (1 = first slide). Negative = count from end.
-DEFENCE_MARKER_SLIDE_INDEX = 0
-# Marker text set (case-insensitive, exact match after strip). Designer can use
-# any of these in the marker's single text box.
-DEFENCE_MARKER_TEXT = "defence"
+DEFENCE_BANNER_HEIGHT_EMU = 2_011_320  #2_011_320 EMU ≈ 2.2 inches (
